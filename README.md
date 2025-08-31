@@ -80,14 +80,19 @@ This comprehensive research project develops an integrated IoT and AI-powered ec
 
 ---
 
-## 👥 Research Team
+## 👥 Research Team & Authors
 
-Our multidisciplinary team brings together expertise in AI, IoT, computer vision, and agricultural technology:
+**Project Supervisor:** [Supervisor Name] - [Title/Department]  
+**Institution:** Sri Lanka Institute of Information Technology (SLIIT), Sri Lanka
+
+Our multidisciplinary research team brings together expertise in AI, IoT, computer vision, and agricultural technology:
 
 <details>
 <summary><strong>🔬 Component 1: Visual Disease Detection & Treatment System</strong></summary>
 
-**Lead Researcher:** Dhananjaya S.M.A (IT22889188)
+**👨‍🔬 Lead Researcher:** [Dhananjaya S.M.A](mailto:it22889188@my.sliit.lk)  
+**🆔 Student ID:** IT22889188  
+**🎓 Program:** [Degree Program] - [Year/Batch]
 
 **🎯 Research Focus:**
 - Advanced Artificial Neural Network (ANN) architectures for automated disease detection
@@ -102,7 +107,9 @@ Our multidisciplinary team brings together expertise in AI, IoT, computer vision
 <details>
 <summary><strong>🌡️ Component 2: Environmental Monitoring & Pest Detection System</strong></summary>
 
-**Lead Researcher:** Nipuna Sachintha (IT22353566)
+**👨‍🔬 Lead Researcher:** [Nipuna Sachintha](mailto:it22353566@my.sliit.lk)  
+**🆔 Student ID:** IT22353566  
+**🎓 Program:** [Degree Program] - [Year/Batch]
 
 **🎯 Research Focus:**
 - IoT sensor network architecture using ESP32 microcontrollers
@@ -117,7 +124,9 @@ Our multidisciplinary team brings together expertise in AI, IoT, computer vision
 <details>
 <summary><strong>📊 Component 3: Visual Growth Stage & Type Classification</strong></summary>
 
-**Lead Researcher:** Yakupitiyage Chamath Yukthila (IT22911162)
+**👨‍🔬 Lead Researcher:** [Yakupitiyage Chamath Yukthila](mailto:it22911162@my.sliit.lk)  
+**🆔 Student ID:** IT22911162  
+**🎓 Program:** [Degree Program] - [Year/Batch]
 
 **🎯 Research Focus:**
 - Multi-class mushroom variety classification (Oyster, Button, Milky)
@@ -132,7 +141,9 @@ Our multidisciplinary team brings together expertise in AI, IoT, computer vision
 <details>
 <summary><strong>🚜 Component 4: Mushroom Harvesting Optimization System</strong></summary>
 
-**Lead Researcher:** Sachindra K.T.N. (IT22350350)
+**👨‍🔬 Lead Researcher:** [Sachindra K.T.N.](mailto:it22350350@my.sliit.lk)  
+**🆔 Student ID:** IT22350350  
+**🎓 Program:** [Degree Program] - [Year/Batch]
 
 **🎯 Research Focus:**
 - Automated ripeness detection through image analysis
