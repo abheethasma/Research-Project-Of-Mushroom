@@ -82,8 +82,6 @@ This comprehensive research project develops an integrated IoT and AI-powered ec
 
 ## 👥 Research Team & Authors
 
-**Project Supervisor:** [Supervisor Name] - [Title/Department]  
-**Institution:** Sri Lanka Institute of Information Technology (SLIIT), Sri Lanka
 
 Our multidisciplinary research team brings together expertise in AI, IoT, computer vision, and agricultural technology:
 
@@ -92,7 +90,8 @@ Our multidisciplinary research team brings together expertise in AI, IoT, comput
 
 **👨‍🔬 Lead Researcher:** [Dhananjaya S.M.A](mailto:it22889188@my.sliit.lk)  
 **🆔 Student ID:** IT22889188  
-**🎓 Program:** [Degree Program] - [Year/Batch]
+**🎓 Program:** BSc (Hons) in Information Technology Specializing in
+Information Technology
 
 **🎯 Research Focus:**
 - Advanced Artificial Neural Network (ANN) architectures for automated disease detection
@@ -109,7 +108,8 @@ Our multidisciplinary research team brings together expertise in AI, IoT, comput
 
 **👨‍🔬 Lead Researcher:** [Nipuna Sachintha](mailto:it22353566@my.sliit.lk)  
 **🆔 Student ID:** IT22353566  
-**🎓 Program:** [Degree Program] - [Year/Batch]
+**🎓 Program:** BSc (Hons) in Information Technology Specializing in
+Information Technology
 
 **🎯 Research Focus:**
 - IoT sensor network architecture using ESP32 microcontrollers
@@ -126,7 +126,8 @@ Our multidisciplinary research team brings together expertise in AI, IoT, comput
 
 **👨‍🔬 Lead Researcher:** [Yakupitiyage Chamath Yukthila](mailto:it22911162@my.sliit.lk)  
 **🆔 Student ID:** IT22911162  
-**🎓 Program:** [Degree Program] - [Year/Batch]
+**🎓 Program:** BSc (Hons) in Information Technology Specializing in
+Information Technology
 
 **🎯 Research Focus:**
 - Multi-class mushroom variety classification (Oyster, Button, Milky)
@@ -143,7 +144,8 @@ Our multidisciplinary research team brings together expertise in AI, IoT, comput
 
 **👨‍🔬 Lead Researcher:** [Sachindra K.T.N.](mailto:it22350350@my.sliit.lk)  
 **🆔 Student ID:** IT22350350  
-**🎓 Program:** [Degree Program] - [Year/Batch]
+**🎓 Program:** BSc (Hons) in Information Technology Specializing in
+Information Technology
 
 **🎯 Research Focus:**
 - Automated ripeness detection through image analysis
