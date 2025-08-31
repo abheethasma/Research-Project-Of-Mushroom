@@ -2,6 +2,8 @@
 
 <div align="center">
 
+<img src="https://raw.githubusercontent.com/abheethasma/Research-Project-Of-Mushroom/main/assets/mushroom-header.png" alt="Smart Mushroom Farming Header" width="100%" style="max-width: 800px; border-radius: 10px; margin-bottom: 20px;" />
+
 ```
 🍄🌱🔬 SMART MUSHROOM CULTIVATION ANALYTICS FRAMEWORK 🔬🌱🍄
 ═══════════════════════════════════════════════════════════════════════════════════
@@ -318,10 +320,10 @@ This project is licensed under the **MIT License** - see the [LICENSE.md](LICENS
 ### 📝 How to Cite
 
 ```bibtex
-@misc{smart_mushroom_framework_2024,
+@misc{smart_mushroom_framework_2025,
   title={Smart Mushroom Cultivation Analytics Framework: An AI-Powered Approach to Optimized Farming},
   author={Dhananjaya, S.M.A and Sachintha, Nipuna and Yukthila, Chamath and Sachindra, K.T.N.},
-  year={2024},
+  year={2025},
   institution={Sri Lanka Institute of Information Technology (SLIIT)},
   url={https://github.com/abheethasma/Research-Project-Of-Mushroom}
 }
