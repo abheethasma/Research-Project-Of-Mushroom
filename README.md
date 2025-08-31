@@ -2,7 +2,7 @@
 
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/abheethasma/Research-Project-Of-Mushroom/main/assets/mushroom-header.png" alt="Smart Mushroom Farming Header" width="100%" style="max-width: 800px; border-radius: 10px; margin-bottom: 20px;" />
+<img src="https://raw.githubusercontent.com/abheethasma/Research-Project-Of-Mushroom/main/assets/mushroom-header1.png" alt="Smart Mushroom Farming Header" width="100%" style="max-width: 800px; border-radius: 10px; margin-bottom: 20px;" />
 
 ```
 🍄🌱🔬 SMART MUSHROOM CULTIVATION ANALYTICS FRAMEWORK 🔬🌱🍄
