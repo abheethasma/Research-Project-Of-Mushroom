@@ -2,7 +2,12 @@
 
 <div align="center">
 
-![Mushroom Header](https://via.placeholder.com/800x200/2E8B57/FFFFFF?text=Smart+Mushroom+Farming+Revolution)
+```
+🍄🌱🔬 SMART MUSHROOM CULTIVATION ANALYTICS FRAMEWORK 🔬🌱🍄
+═══════════════════════════════════════════════════════════════════════════════════
+    🤖 AI-Powered • 📊 Data-Driven • 🌿 Sustainable Agriculture Innovation
+═══════════════════════════════════════════════════════════════════════════════════
+```
 
 [![Project ID](https://img.shields.io/badge/Project--ID-25--26J--211-blue?style=for-the-badge)](.)
 [![Status](https://img.shields.io/badge/Status-In%20Development-green?style=for-the-badge)](.)
