@@ -130,7 +130,7 @@ Information Technology
 Information Technology
 
 **🎯 Research Focus:**
-- Multi-class mushroom variety classification (Oyster, Button, Milky)
+- Multi-class mushroom variety classification (Oyster, Button, Milky)..
 - Time-series analysis for growth stage prediction
 - Computer vision for spawn run, primordia formation, and fruitbody development tracking
 - Predictive modeling for cultivation timeline optimization
@@ -305,6 +305,7 @@ python src/iot/sensor_monitor.py
 </div>
 
 ---
+
 
 ## 🤝 Contributing
 
