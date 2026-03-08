@@ -1,11 +1,11 @@
 from pydantic import BaseModel
 
+class GrowthPredictionResult(BaseModel):
+    predicted_stage: str
+    confidence: float
+    next_stage: str
 
-class GrowthPredictionRequest(BaseModel):
-    sample_id: str
-
-
-class GrowthPredictionResponse(BaseModel):
-    stage: str
-    days_until_harvest: int
-    expected_yield_kg: float
+class GrowthPredictionApiResponse(BaseModel):
+    success: bool
+    message: str
+    result: GrowthPredictionResult

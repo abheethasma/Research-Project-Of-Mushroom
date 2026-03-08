@@ -95,3 +95,61 @@ class EnvironmentHealthOut(BaseModel):
     last_seen: datetime | None = None
     node_id: str | None = None
     seconds_since_last: int | None = None
+
+class EnvironmentSolutionRecommendationOut(BaseModel):
+    language: str = "en"
+    mushroom_type: str | None = None
+    stage: str | None = None
+
+    issue_code: str | None = None
+    metric: str | None = None
+
+    current_value: float | None = None
+    optimal_min: float | None = None
+    optimal_max: float | None = None
+
+    title: str | None = None
+    immediate: list[str] = Field(default_factory=list)
+    short_term: list[str] = Field(default_factory=list)
+    long_term: list[str] = Field(default_factory=list)
+    safety: list[str] = Field(default_factory=list)
+
+    llm_message: str | None = None
+    used_llm: bool = False
+    note: str | None = None
+
+
+class OutdoorWeatherOut(BaseModel):
+    temperature: float | None = None
+    humidity: float | None = None
+    rainfall: float | None = None
+
+
+class EnvironmentForecastOut(BaseModel):
+    horizon_minutes: int = 60
+    generated_at: datetime
+
+    mushroom_type: str | None = None
+    stage: str | None = None
+
+    current_temperature: float | None = None
+    current_humidity: float | None = None
+
+    predicted_temperature: float | None = None
+    predicted_humidity: float | None = None
+
+    optimal_temp_min: float | None = None
+    optimal_temp_max: float | None = None
+    optimal_rh_min: float | None = None
+    optimal_rh_max: float | None = None
+
+    temp_status: str | None = None   # within / high / low
+    rh_status: str | None = None     # within / high / low
+
+    warning: bool = False
+    warning_message: str | None = None
+
+    outdoor: OutdoorWeatherOut | None = None
+
+    model_temp_mae: float | None = None
+    model_rh_mae: float | None = None    

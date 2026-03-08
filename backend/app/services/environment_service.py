@@ -1,8 +1,10 @@
 from __future__ import annotations
-
+import os
 from datetime import datetime, timezone, timedelta
 from zoneinfo import ZoneInfo
-
+from app.data.environment_solution_data import ENVIRONMENT_SOLUTIONS
+from app.services.groq_service import format_solution_with_groq
+from app.schemas.environment import EnvironmentSolutionRecommendationOut
 from app.db.pg_pool import pool
 from app.db.environment_db import (
     get_latest_reading,
@@ -512,4 +514,191 @@ def get_environment_health(offline_after_seconds: int = 60) -> EnvironmentHealth
         last_seen=last_seen_dt,
         node_id=meta["node_id"],
         seconds_since_last=seconds_since,
+    )
+
+def _normalize_lang(lang: str | None) -> str:
+    if not lang:
+        return "en"
+
+    value = lang.strip().lower()
+    if value in {"si", "sinhala", "සිංහල"}:
+        return "si"
+    return "en"
+
+
+def _detect_primary_issue(reading: dict, optimal: dict) -> tuple[str | None, float | None, float | None, float | None]:
+    temp = reading.get("temperature")
+    rh = reading.get("humidity")
+    co2 = reading.get("co2_estimated")
+
+    if temp is not None:
+        if temp > optimal["temp_max"]:
+            return "TEMP_HIGH", float(temp), float(optimal["temp_min"]), float(optimal["temp_max"])
+        if temp < optimal["temp_min"]:
+            return "TEMP_LOW", float(temp), float(optimal["temp_min"]), float(optimal["temp_max"])
+
+    if rh is not None:
+        if rh < optimal["rh_min"]:
+            return "RH_LOW", float(rh), float(optimal["rh_min"]), float(optimal["rh_max"])
+        if rh > optimal["rh_max"]:
+            return "RH_HIGH", float(rh), float(optimal["rh_min"]), float(optimal["rh_max"])
+
+    co2_max = optimal.get("co2_max")
+    if co2 is not None and co2_max is not None:
+        if float(co2) > float(co2_max):
+            return "CO2_HIGH", float(co2), None, float(co2_max)
+
+    return None, None, None, None
+
+
+def _build_plain_solution_message(
+    *,
+    lang: str,
+    title: str,
+    immediate: list[str],
+    short_term: list[str],
+    long_term: list[str],
+    safety: list[str],
+) -> str:
+    if lang == "si":
+        lines = [f"{title}."]
+        if immediate:
+            lines.append("දැන් කරන්න:")
+            for step in immediate[:2]:
+                lines.append(f"- {step}")
+        if short_term:
+            lines.append("ඊළඟට කරන්න:")
+            lines.append(f"- {short_term[0]}")
+        if long_term:
+            lines.append("දිගුකාලීනව:")
+            lines.append(f"- {long_term[0]}")
+        if safety:
+            lines.append("ආරක්ෂාව:")
+            lines.append(f"- {safety[0]}")
+        return "\n".join(lines)
+
+    lines = [f"{title}."]
+    if immediate:
+        lines.append("Do this now:")
+        for step in immediate[:2]:
+            lines.append(f"- {step}")
+    if short_term:
+        lines.append("Next:")
+        lines.append(f"- {short_term[0]}")
+    if long_term:
+        lines.append("Long term:")
+        lines.append(f"- {long_term[0]}")
+    if safety:
+        lines.append("Safety:")
+        lines.append(f"- {safety[0]}")
+    return "\n".join(lines)
+
+
+def get_environment_solution_recommendation(lang: str = "en") -> EnvironmentSolutionRecommendationOut:
+    language = _normalize_lang(lang)
+
+    profile = get_profile()
+    if not profile or not profile.get("mushroom_type") or not profile.get("stage"):
+        note = (
+            "Please select mushroom type and stage first."
+            if language == "en"
+            else "කරුණාකර මුලින්ම mushroom type සහ stage තෝරන්න."
+        )
+        return EnvironmentSolutionRecommendationOut(
+            language=language,
+            note=note,
+        )
+
+    reading = get_latest_reading()
+    if not reading:
+        note = (
+            "No environment reading found yet."
+            if language == "en"
+            else "තවම environment reading එකක් නොමැත."
+        )
+        return EnvironmentSolutionRecommendationOut(
+            language=language,
+            mushroom_type=profile.get("mushroom_type"),
+            stage=profile.get("stage"),
+            note=note,
+        )
+
+    optimal = kb_get_optimal_range(profile["mushroom_type"], profile["stage"])
+    if not optimal:
+        note = (
+            "Optimal range not found for current profile."
+            if language == "en"
+            else "දැනට තෝරා ඇති profile සඳහා optimal range එක හමු නොවීය."
+        )
+        return EnvironmentSolutionRecommendationOut(
+            language=language,
+            mushroom_type=profile.get("mushroom_type"),
+            stage=profile.get("stage"),
+            note=note,
+        )
+
+    issue_code, current_value, optimal_min, optimal_max = _detect_primary_issue(reading, optimal)
+
+    if not issue_code:
+        note = (
+            "Environment is within the optimal range right now."
+            if language == "en"
+            else "දැනට පරිසර අගයන් සුදුසු පරාසය තුළ ඇත."
+        )
+        return EnvironmentSolutionRecommendationOut(
+            language=language,
+            mushroom_type=profile.get("mushroom_type"),
+            stage=profile.get("stage"),
+            note=note,
+        )
+
+    solution = ENVIRONMENT_SOLUTIONS[issue_code][language]
+    metric = ENVIRONMENT_SOLUTIONS[issue_code]["metric"]
+
+    immediate = solution.get("immediate", [])
+    short_term = solution.get("short_term", [])
+    long_term = solution.get("long_term", [])
+    safety = solution.get("safety", [])
+    title = solution.get("title")
+
+    generated_message = format_solution_with_groq(
+        language=language,
+        title=title,
+        current_value=current_value,
+        optimal_min=optimal_min,
+        optimal_max=optimal_max,
+        immediate=immediate,
+        short_term=short_term,
+        long_term=long_term,
+        safety=safety,
+    )
+
+    used_llm = bool(generated_message)
+
+    if not generated_message:
+        generated_message = _build_plain_solution_message(
+            lang=language,
+            title=title,
+            immediate=immediate,
+            short_term=short_term,
+            long_term=long_term,
+            safety=safety,
+        )
+
+    return EnvironmentSolutionRecommendationOut(
+        language=language,
+        mushroom_type=profile.get("mushroom_type"),
+        stage=profile.get("stage"),
+        issue_code=issue_code,
+        metric=metric,
+        current_value=current_value,
+        optimal_min=optimal_min,
+        optimal_max=optimal_max,
+        title=title,
+        immediate=immediate,
+        short_term=short_term,
+        long_term=long_term,
+        safety=safety,
+        llm_message=generated_message,
+        used_llm=used_llm,
     )

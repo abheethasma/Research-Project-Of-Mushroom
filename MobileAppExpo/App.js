@@ -2,32 +2,59 @@ import 'react-native-gesture-handler';
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-//import { Ionicons } from '@expo/vector-icons';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 
 import HomeScreen from './src/screens/HomeScreen';
-import EnvironmentScreen from './src/screens/EnvironmentScreen';
+import EnvironmentScreen from './src/screens/environment/EnvironmentScreen';
+import EnvironmentSolutionScreen from './src/screens/environment/EnvironmentSolutionScreen';
+import EnvironmentForecastScreen from './src/screens/environment/EnvironmentForecastScreen';
 import PestDetectionScreen from './src/screens/PestDetectionScreen';
 import DiseaseDetectionScreen from './src/screens/DiseaseDetectionScreen';
 import GrowthPredictionScreen from './src/screens/GrowthPredictionScreen';
 import MushroomTypeScreen from './src/screens/MushroomTypeScreen';
 
 const Tab = createBottomTabNavigator();
+const EnvironmentStack = createNativeStackNavigator();
+
+function EnvironmentStackNavigator() {
+  return (
+    <EnvironmentStack.Navigator
+      screenOptions={{
+        headerStyle: { backgroundColor: '#0f172a' },
+        headerTintColor: '#e5e7eb',
+        headerTitleStyle: { fontWeight: '600' },
+      }}
+    >
+      <EnvironmentStack.Screen
+        name="EnvironmentHome"
+        component={EnvironmentScreen}
+        options={{ title: 'Environmental Monitoring' }}
+      />
+      <EnvironmentStack.Screen
+        name="EnvironmentSolution"
+        component={EnvironmentSolutionScreen}
+        options={{ title: 'Solution Recommendation' }}
+      />
+      <EnvironmentStack.Screen
+        name="EnvironmentForecast"
+        component={EnvironmentForecastScreen}
+        options={{ title: '60-Minute Forecast' }}
+      />
+    </EnvironmentStack.Navigator>
+  );
+}
 
 export default function App() {
   return (
     <NavigationContainer>
       <Tab.Navigator
         screenOptions={({ route }) => ({
-          // IMPORTANT: don't hide the header
           headerShown: true,
-
-          // Your old header styling
           headerStyle: { backgroundColor: '#0f172a' },
           headerTintColor: '#e5e7eb',
           headerTitleStyle: { fontWeight: '600' },
 
-          // Your old tab styling
           tabBarStyle: { backgroundColor: '#020617' },
           tabBarActiveTintColor: '#22c55e',
           tabBarInactiveTintColor: '#64748b',
@@ -52,11 +79,14 @@ export default function App() {
 
             return <Ionicons name={iconName} size={size} color={color} />;
           },
-
         })}
       >
         <Tab.Screen name="Home" component={HomeScreen} />
-        <Tab.Screen name="Environmental Monitoring" component={EnvironmentScreen} />
+        <Tab.Screen
+          name="Environmental Monitoring"
+          component={EnvironmentStackNavigator}
+          options={{ headerShown: false }}
+        />
         <Tab.Screen name="Pests" component={PestDetectionScreen} />
         <Tab.Screen name="Disease" component={DiseaseDetectionScreen} />
         <Tab.Screen name="Growth" component={GrowthPredictionScreen} />

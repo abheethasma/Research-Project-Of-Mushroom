@@ -147,14 +147,6 @@ def init_db() -> None:
                 ("Oyster Mushroom", "spawn_run", 24, 27, 90, 100, 20000, 20000, "Estimated only (display)"),
                 ("Oyster Mushroom", "fruiting", 19, 20, 85, 92, 600, 600, "Estimated only (display)"),
 
-                # Abalone Mushroom
-                ("Abalone Mushroom", "spawn_run", 24, 30, 90, 95, 5000, 20000, "Estimated only (display)"),
-                ("Abalone Mushroom", "fruiting", 21, 27, 85, 90, None, 2000, "Estimated only (display)"),  # < 2000
-
-                # Paddy Straw Mushroom (no CO2 data)
-                ("Paddy Straw Mushroom", "spawn_run", 33, 37, 85, 90, None, None, "Estimated only (display)"),
-                ("Paddy Straw Mushroom", "fruiting", 30, 35, 75, 85, None, None, "Estimated only (display)"),
-
                 # Milky Mushroom
                 ("Milky Mushroom", "spawn_run", 25, 30, 80, 90, 5000, None, "Estimated only (display)"),     # > 5000
                 ("Milky Mushroom", "fruiting", 30, 38, 80, 90, 400, 800, "Estimated only (display)"),
@@ -443,3 +435,19 @@ def get_latest_reading_meta():
     if isinstance(out.get("sampled_at"), datetime):
         out["sampled_at"] = _iso_z(out["sampled_at"])
     return out
+
+def get_recent_readings(limit: int = 13) -> list[Dict[str, Any]]:
+    with pool.connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT *
+                FROM environment_readings
+                ORDER BY sampled_at DESC, id DESC
+                LIMIT %s;
+                """,
+                (limit,),
+            )
+            rows = cur.fetchall() or []
+
+    return [(_normalize_row(r) or {}) for r in rows]

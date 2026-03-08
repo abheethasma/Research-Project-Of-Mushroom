@@ -8,4 +8,6 @@ psycopg_pool
 pillow
 python-multipart
 tensorflow
-groq 
+groq
+httpx
+python-dotenv

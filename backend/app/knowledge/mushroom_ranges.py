@@ -14,14 +14,6 @@ MUSHROOM_RANGES: Dict[str, Dict[str, Dict[str, Optional[float]]]] = {
         "spawn_run": {"temp_min": 24, "temp_max": 27, "rh_min": 90, "rh_max": 100, "co2_min": 20000, "co2_max": 20000},
         "fruiting": {"temp_min": 19, "temp_max": 20, "rh_min": 85, "rh_max": 92, "co2_min": 600, "co2_max": 600},
     },
-    "Abalone Mushroom": {
-        "spawn_run": {"temp_min": 24, "temp_max": 30, "rh_min": 90, "rh_max": 95, "co2_min": 5000, "co2_max": 20000},
-        "fruiting": {"temp_min": 21, "temp_max": 27, "rh_min": 85, "rh_max": 90, "co2_min": None, "co2_max": 2000},
-    },
-    "Paddy Straw Mushroom": {
-        "spawn_run": {"temp_min": 33, "temp_max": 37, "rh_min": 85, "rh_max": 90, "co2_min": None, "co2_max": None},
-        "fruiting": {"temp_min": 30, "temp_max": 35, "rh_min": 75, "rh_max": 85, "co2_min": None, "co2_max": None},
-    },
     "Milky Mushroom": {
         "spawn_run": {"temp_min": 25, "temp_max": 30, "rh_min": 80, "rh_max": 90, "co2_min": 5000, "co2_max": None},   # >5000
         "fruiting": {"temp_min": 30, "temp_max": 38, "rh_min": 80, "rh_max": 90, "co2_min": 400, "co2_max": 800},
