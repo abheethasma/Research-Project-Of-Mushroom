@@ -3,7 +3,7 @@
 import { Platform } from "react-native";
 
 // Change this IP if your PC IP changes
-export const BACKEND_URL = "http://192.168.1.6:8000";
+export const BACKEND_URL = "http://192.168.8.137:8000";
 
 export function getBackendUrl() {
   return BACKEND_URL;

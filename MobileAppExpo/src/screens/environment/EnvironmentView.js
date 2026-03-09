@@ -334,29 +334,12 @@ export default function EnvironmentView(props) {
     graphHint,
     openGraphDatePicker,
 
-    recSource,
-    setRecSource,
-    recHint,
-    recLoading,
-    recommendation,
-    loadRecommendation,
-    openRecDatePicker,
-
-    ensureRecRangeLoaded,
-    recRangeCache,
-    recExpandedKey,
-    setRecExpandedKey,
-    showAllRecs,
-    setShowAllRecs,
-
     showMushroomModal,
     setShowMushroomModal,
     showStageModal,
     setShowStageModal,
     showDateModal,
     setShowDateModal,
-    showRecDateModal,
-    setShowRecDateModal,
 
     mushroomItems,
     stageItems,
@@ -364,11 +347,11 @@ export default function EnvironmentView(props) {
 
     onOpenSolutionRecommendation,
     onOpenForecast,
+    onOpenVarietyRecommendation,
 
     onPickMushroom,
     onPickStage,
     onPickGraphDate,
-    onPickRecDate,
   } = props;
 
   return (
@@ -465,6 +448,14 @@ export default function EnvironmentView(props) {
         ) : (
           <Text style={styles.subtle}>No active alerts.</Text>
         )}
+
+      </Card>
+
+      <Card title="Quick actions">
+        <Text style={[styles.subtle, { marginTop: 0 }]}>
+          Open forecast, recommended actions, or variety matching.
+        </Text>
+
         <View style={{ marginTop: 12, gap: 10 }}>
           <Pressable style={styles.primaryBtn} onPress={onOpenForecast}>
             <Text style={styles.primaryBtnText}>View 60-minute forecast</Text>
@@ -472,6 +463,10 @@ export default function EnvironmentView(props) {
 
           <Pressable style={styles.primaryBtn} onPress={onOpenSolutionRecommendation}>
             <Text style={styles.primaryBtnText}>View solution recommendation</Text>
+          </Pressable>
+
+          <Pressable style={styles.primaryBtn} onPress={onOpenVarietyRecommendation}>
+            <Text style={styles.primaryBtnText}>View variety recommendation</Text>
           </Pressable>
         </View>
       </Card>
@@ -585,173 +580,6 @@ export default function EnvironmentView(props) {
         <SimpleLineChart points={historyPoints} field="co2" yMin={0} yMax={5000} yTicks={[0, 2500, 5000]} />
       </Card>
 
-      <Card title="Variety recommendation">
-        <View style={styles.segmentWrap}>
-          <Pressable
-            style={[styles.segmentBtn, recSource === 'current' && styles.segmentBtnActive]}
-            onPress={() => setRecSource('current')}
-          >
-            <Text style={[styles.segmentText, recSource === 'current' && styles.segmentTextActive]}>
-              Current
-            </Text>
-          </Pressable>
-
-          <Pressable
-            style={[styles.segmentBtn, recSource === 'last_1h' && styles.segmentBtnActive]}
-            onPress={() => setRecSource('last_1h')}
-          >
-            <Text style={[styles.segmentText, recSource === 'last_1h' && styles.segmentTextActive]}>
-              Last 1h
-            </Text>
-          </Pressable>
-
-          <Pressable
-            style={[styles.segmentBtn, recSource === 'date' && styles.segmentBtnActive]}
-            onPress={openRecDatePicker}
-          >
-            <Text style={[styles.segmentText, recSource === 'date' && styles.segmentTextActive]}>
-              Date
-            </Text>
-            <Text style={[styles.segmentSub, recSource === 'date' && styles.segmentSubActive]}>
-              {dateForButtons}
-            </Text>
-          </Pressable>
-        </View>
-
-        <Text style={styles.subtle}>{recHint}</Text>
-
-        <Pressable
-          style={[styles.primaryBtn, recLoading && { opacity: 0.7 }]}
-          onPress={() => loadRecommendation()}
-          disabled={recLoading}
-        >
-          <Text style={styles.primaryBtnText}>{recLoading ? 'Loading...' : 'Get recommendation'}</Text>
-        </Pressable>
-
-        {recommendation?.temperature != null && recommendation?.humidity != null ? (
-          <Text style={styles.subtle}>
-            Used: Temp {recommendation.temperature.toFixed(1)}°C, RH {recommendation.humidity.toFixed(1)}%
-            {recommendation.points_used ? ` (points: ${recommendation.points_used})` : ''}
-          </Text>
-        ) : (
-          <Text style={styles.subtle}>No data available for the selected source yet.</Text>
-        )}
-
-        {recommendation?.recommendations?.length > 0 ? (
-          <View style={{ marginTop: 10 }}>
-            {(showAllRecs ? recommendation.recommendations : recommendation.recommendations.slice(0, 3)).map(
-              (r, idx) => {
-                const key = `${r.mushroom_type}-${idx}`;
-                const expanded = recExpandedKey === key;
-
-                const parts = String(r.reason || '')
-                  .split(',')
-                  .map((s) => s.trim())
-                  .filter(Boolean);
-
-                return (
-                  <Pressable
-                    key={key}
-                    onPress={() => {
-                      const next = expanded ? null : key;
-                      setRecExpandedKey(next);
-                      if (!expanded) ensureRecRangeLoaded(r.mushroom_type);
-                    }}
-                    style={[styles.recItem, expanded && styles.recItemExpanded]}
-                  >
-                    <View style={styles.recTopRow}>
-                      <Text style={styles.recTitle}>
-                        {idx + 1}. {r.mushroom_type}
-                      </Text>
-
-                      <View style={styles.recRightGroup}>
-                        <Text style={styles.recScore}>{Number(r.score).toFixed(2)}</Text>
-                        <Text style={styles.recChevron}>{expanded ? '▴' : '▾'}</Text>
-                      </View>
-                    </View>
-
-                    {!expanded ? (
-                      <Text style={styles.recHint} numberOfLines={1}>
-                        {r.reason}
-                      </Text>
-                    ) : (
-                      <View style={styles.recDetails}>
-                        {parts.length > 0 ? (
-                          parts.map((p, i) => (
-                            <Text key={i} style={styles.recDetailText}>
-                              {p}
-                            </Text>
-                          ))
-                        ) : (
-                          <Text style={styles.recDetailText}>No details available</Text>
-                        )}
-
-                        <View style={{ marginTop: 10 }}>
-                          {!profile?.stage ? (
-                            <Text style={styles.recDetailText}>Select a stage to show target ranges.</Text>
-                          ) : (() => {
-                              const cacheKey = `${r.mushroom_type}__${profile.stage || 'no_stage'}`;
-                              const cache = recRangeCache?.[cacheKey];
-                              const rg = cache?.range;
-
-                              const usedT = recommendation?.temperature;
-                              const usedH = recommendation?.humidity;
-
-                              if (cache?.loading) return <Text style={styles.recDetailText}>Loading target ranges...</Text>;
-                              if (cache?.error) return <Text style={styles.recDetailText}>Could not load target ranges.</Text>;
-                              if (!rg) return null;
-
-                              const hasCo2Min2 = rg.co2_min != null && Number.isFinite(Number(rg.co2_min));
-                              const hasCo2Max2 = rg.co2_max != null && Number.isFinite(Number(rg.co2_max));
-                              const co2Label2 =
-                                hasCo2Min2 && hasCo2Max2
-                                  ? `${Number(rg.co2_min)}–${Number(rg.co2_max)} ppm`
-                                  : hasCo2Max2
-                                  ? `≤ ${Number(rg.co2_max)} ppm`
-                                  : hasCo2Min2
-                                  ? `≥ ${Number(rg.co2_min)} ppm`
-                                  : null;
-
-                              return (
-                                <>
-                                  <Text style={[styles.recDetailText, { fontWeight: '900', color: C.text }]}>
-                                    Target ranges ({stageLabel || profile.stage})
-                                  </Text>
-
-                                  <Text style={styles.recDetailText}>
-                                    Temp target: {rg.temp_min}–{rg.temp_max}°C
-                                    {usedT != null ? ` • Used: ${Number(usedT).toFixed(1)}°C` : ''}
-                                  </Text>
-
-                                  <Text style={styles.recDetailText}>
-                                    RH target: {rg.rh_min}–{rg.rh_max}%
-                                    {usedH != null ? ` • Used: ${Number(usedH).toFixed(1)}%` : ''}
-                                  </Text>
-
-                                  {co2Label2 ? (
-                                    <Text style={styles.recDetailText}>CO₂ target: {co2Label2}</Text>
-                                  ) : null}
-                                </>
-                              );
-                            })()}
-                        </View>
-                      </View>
-                    )}
-                  </Pressable>
-                );
-              }
-            )}
-
-            {recommendation.recommendations.length > 3 ? (
-              <Pressable style={styles.showMoreBtn} onPress={() => setShowAllRecs((v) => !v)}>
-                <Text style={styles.showMoreText}>{showAllRecs ? 'Show top 3 only' : 'Show all'}</Text>
-              </Pressable>
-            ) : null}
-
-            <Text style={[styles.subtle, { marginTop: 8 }]}>Lower score means a better match.</Text>
-          </View>
-        ) : null}
-      </Card>
 
       <SelectModal
         visible={!!showMushroomModal}
@@ -775,14 +603,6 @@ export default function EnvironmentView(props) {
         items={dateItems || []}
         onClose={() => setShowDateModal(false)}
         onPick={onPickGraphDate}
-      />
-
-      <SelectModal
-        visible={!!showRecDateModal}
-        title="Select date for recommendation"
-        items={dateItems || []}
-        onClose={() => setShowRecDateModal(false)}
-        onPick={onPickRecDate}
       />
     </>
   );

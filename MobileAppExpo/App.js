@@ -9,7 +9,7 @@ import HomeScreen from './src/screens/HomeScreen';
 import EnvironmentScreen from './src/screens/environment/EnvironmentScreen';
 import EnvironmentSolutionScreen from './src/screens/environment/EnvironmentSolutionScreen';
 import EnvironmentForecastScreen from './src/screens/environment/EnvironmentForecastScreen';
-import PestDetectionScreen from './src/screens/PestDetectionScreen';
+import EnvironmentVarietyScreen from './src/screens/environment/EnvironmentVarietyScreen';
 import DiseaseDetectionScreen from './src/screens/DiseaseDetectionScreen';
 import GrowthPredictionScreen from './src/screens/GrowthPredictionScreen';
 import MushroomTypeScreen from './src/screens/MushroomTypeScreen';
@@ -40,6 +40,11 @@ function EnvironmentStackNavigator() {
         name="EnvironmentForecast"
         component={EnvironmentForecastScreen}
         options={{ title: '60-Minute Forecast' }}
+      />
+      <EnvironmentStack.Screen
+        name="EnvironmentVariety"
+        component={EnvironmentVarietyScreen}
+        options={{ title: 'Variety Recommendation' }}
       />
     </EnvironmentStack.Navigator>
   );
@@ -87,7 +92,6 @@ export default function App() {
           component={EnvironmentStackNavigator}
           options={{ headerShown: false }}
         />
-        <Tab.Screen name="Pests" component={PestDetectionScreen} />
         <Tab.Screen name="Disease" component={DiseaseDetectionScreen} />
         <Tab.Screen name="Growth" component={GrowthPredictionScreen} />
         <Tab.Screen name="Type" component={MushroomTypeScreen} />

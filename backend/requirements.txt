@@ -2,12 +2,15 @@ fastapi
 uvicorn[standard]
 pydantic
 numpy
+pandas
 tzdata
 psycopg[binary]
 psycopg_pool
 pillow
 python-multipart
 tensorflow
+scikit-learn==1.6.1
+joblib
 groq
 httpx
 python-dotenv

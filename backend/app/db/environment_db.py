@@ -142,18 +142,32 @@ def init_db() -> None:
 
             # Seed optimal ranges (Sri Lanka KB)
             # Note: CO2 is display-only; alerts + recommendations use Temp/RH only.
+            # rows = [
+            #     # Oyster Mushroom
+            #     ("Oyster Mushroom", "spawn_run", 24, 27, 90, 100, 20000, 20000, "Estimated only (display)"),
+            #     ("Oyster Mushroom", "fruiting", 19, 20, 85, 92, 600, 600, "Estimated only (display)"),
+
+            #     # Milky Mushroom
+            #     ("Milky Mushroom", "spawn_run", 25, 30, 80, 90, 5000, None, "Estimated only (display)"),     # > 5000
+            #     ("Milky Mushroom", "fruiting", 30, 38, 80, 90, 400, 800, "Estimated only (display)"),
+
+            #     # Button Mushroom
+            #     ("Button Mushroom", "spawn_run", 24, 24, 80, 85, None, None, "Estimated only (display)"),
+            #     ("Button Mushroom", "fruiting", 12, 18, 85, 90, None, 1000, "Estimated only (display)"),     # < 1000
+            # ]
+
             rows = [
                 # Oyster Mushroom
-                ("Oyster Mushroom", "spawn_run", 24, 27, 90, 100, 20000, 20000, "Estimated only (display)"),
-                ("Oyster Mushroom", "fruiting", 19, 20, 85, 92, 600, 600, "Estimated only (display)"),
+                ("Oyster Mushroom", "spawn_run", 24, 27, 90, 100, None, 20000, "Estimated only (display)"),
+                ("Oyster Mushroom", "fruiting", 19, 20, 85, 92, 500, 700, "Estimated only (display)"),
 
                 # Milky Mushroom
-                ("Milky Mushroom", "spawn_run", 25, 30, 80, 90, 5000, None, "Estimated only (display)"),     # > 5000
-                ("Milky Mushroom", "fruiting", 30, 38, 80, 90, 400, 800, "Estimated only (display)"),
+                ("Milky Mushroom", "spawn_run", 24, 30, 80, 85, 5000, 8000, "Estimated only (display)"),
+                ("Milky Mushroom", "fruiting", 28, 34, 80, 90, 600, 800, "Estimated only (display)"),
 
                 # Button Mushroom
-                ("Button Mushroom", "spawn_run", 24, 24, 80, 85, None, None, "Estimated only (display)"),
-                ("Button Mushroom", "fruiting", 12, 18, 85, 90, None, 1000, "Estimated only (display)"),     # < 1000
+                ("Button Mushroom", "spawn_run", 22, 25, 90, 95, 5000, 10000, "Estimated only (display)"),
+                ("Button Mushroom", "fruiting", 14, 18, 85, 90, 800, 1200, "Estimated only (display)"),
             ]
 
             cur.executemany(

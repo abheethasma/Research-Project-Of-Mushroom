@@ -1,7 +1,7 @@
-// src/services/growthApi.js
 import { Platform } from 'react-native';
+import { BACKEND_URL } from './api';
 
-const API_BASE_URL = 'http://127.0.0.1:8000/api/v1/growth';
+const API_BASE_URL = `${BACKEND_URL}/api/v1/growth`;
 
 export async function predictGrowthStage(imageAsset, bagId) {
   if (!imageAsset?.uri) {
@@ -34,13 +34,16 @@ export async function predictGrowthStage(imageAsset, bagId) {
 
   const response = await fetch(`${API_BASE_URL}/predict-growth-stage`, {
     method: 'POST',
+    headers: {
+      Accept: 'application/json',
+    },
     body: formData,
   });
 
-  const data = await response.json();
+  const data = await response.json().catch(() => null);
 
   if (!response.ok) {
-    throw new Error(data.detail || 'Failed to predict growth stage');
+    throw new Error(data?.detail || 'Failed to predict growth stage');
   }
 
   return data;
@@ -52,13 +55,18 @@ export async function fetchGrowthHistory(bagId) {
   }
 
   const response = await fetch(
-    `${API_BASE_URL}/history/${encodeURIComponent(bagId.trim())}`
+    `${API_BASE_URL}/history/${encodeURIComponent(bagId.trim())}`,
+    {
+      headers: {
+        Accept: 'application/json',
+      },
+    }
   );
 
-  const data = await response.json();
+  const data = await response.json().catch(() => null);
 
   if (!response.ok) {
-    throw new Error(data.detail || 'Failed to load growth history');
+    throw new Error(data?.detail || 'Failed to load growth history');
   }
 
   return data;

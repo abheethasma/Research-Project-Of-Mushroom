@@ -25,16 +25,6 @@ def format_solution_with_groq(
 
     lang_name = "Sinhala" if language == "si" else "English"
 
-    # system_prompt = (
-    #     "You rewrite approved mushroom farm guidance. "
-    #     "Use only the approved actions given to you. "
-    #     "Do not add new actions, chemicals, tools, warnings, or assumptions. "
-    #     "Do not change the meaning. "
-    #     f"Write in simple {lang_name}. "
-    #     "Keep the tone practical and natural for farmers. "
-    #     "Keep it short and clear."
-    # )
-
     system_prompt = (
         "You rewrite approved mushroom farm guidance. "
         "Use only the approved actions given to you. "
@@ -42,10 +32,20 @@ def format_solution_with_groq(
         "Do not change the meaning. "
         f"Write in simple {lang_name}. "
         "Keep the tone practical and natural for farmers. "
-        "If the response language is Sinhala, keep the response mostly in Sinhala and avoid unnecessary English words. "
-        "Only keep technical words in English when there is no simple natural Sinhala alternative. "
         "Keep it short and clear."
     )
+
+    # system_prompt = (
+    #     "You rewrite approved mushroom farm guidance. "
+    #     "Use only the approved actions given to you. "
+    #     "Do not add new actions, chemicals, tools, warnings, or assumptions. "
+    #     "Do not change the meaning. "
+    #     f"Write in simple {lang_name}. "
+    #     "Keep the tone practical and natural for farmers. "
+    #     "If the response language is Sinhala, keep the response mostly in Sinhala and avoid unnecessary English words. "
+    #     "Only keep technical words in English when there is no simple natural Sinhala alternative. "
+    #     "Keep it short and clear."
+    # )
 
     user_prompt = f"""
 Problem title: {title}

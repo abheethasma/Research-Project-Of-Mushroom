@@ -10,7 +10,6 @@ import {
   fetchOptimalRange,
   fetchEnvironmentHistory,
   fetchEnvironmentAvailableDates,
-  fetchEnvironmentRecommendation,
   fetchEnvironmentHealth,
 } from '../../services/environmentApi';
 
@@ -46,8 +45,6 @@ export default function EnvironmentScreen({ navigation }) {
   const [profile, setProfile] = useState({ mushroom_type: null, stage: null });
   const [range, setRange] = useState(null);
 
-  const [recRangeCache, setRecRangeCache] = useState({});
-
   const [showMushroomModal, setShowMushroomModal] = useState(false);
   const [showStageModal, setShowStageModal] = useState(false);
 
@@ -61,14 +58,6 @@ export default function EnvironmentScreen({ navigation }) {
   const [availableDates, setAvailableDates] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
   const [showDateModal, setShowDateModal] = useState(false);
-
-  const [recSource, setRecSource] = useState('current');
-  const [recommendation, setRecommendation] = useState(null);
-  const [recLoading, setRecLoading] = useState(false);
-  const [showRecDateModal, setShowRecDateModal] = useState(false);
-
-  const [recExpandedKey, setRecExpandedKey] = useState(null);
-  const [showAllRecs, setShowAllRecs] = useState(false);
 
   const graphModeRef = useRef(graphMode);
   const selectedDateRef = useRef(selectedDate);
@@ -192,30 +181,6 @@ export default function EnvironmentScreen({ navigation }) {
     }
   }
 
-  async function loadRecommendation(forceSource, forceDate) {
-    const src = forceSource ?? recSource;
-    const dt = forceDate ?? selectedDate;
-
-    if (src === 'date' && !dt) {
-      setRecommendation(null);
-      return;
-    }
-
-    setRecLoading(true);
-    try {
-      const rec = await fetchEnvironmentRecommendation(src, dt);
-      setRecommendation(rec);
-
-      setRecExpandedKey(null);
-      setShowAllRecs(false);
-      setRecRangeCache({});
-    } catch {
-      setRecommendation(null);
-    } finally {
-      setRecLoading(false);
-    }
-  }
-
   async function applyProfile(next) {
     setProfileUpdating(true);
     try {
@@ -236,32 +201,6 @@ export default function EnvironmentScreen({ navigation }) {
       prevAlertActiveRef.current = nextPrev;
     } finally {
       setProfileUpdating(false);
-    }
-  }
-
-  async function ensureRecRangeLoaded(mushroomType) {
-    if (!profile.stage) return;
-
-    const cacheKey = `${mushroomType}__${profile.stage || 'no_stage'}`;
-    const existing = recRangeCache[cacheKey];
-    if (existing?.loading || existing?.range || existing?.error) return;
-
-    setRecRangeCache((prev) => ({
-      ...prev,
-      [cacheKey]: { loading: true, range: null, error: false },
-    }));
-
-    try {
-      const rg = await fetchOptimalRange(mushroomType, profile.stage);
-      setRecRangeCache((prev) => ({
-        ...prev,
-        [cacheKey]: { loading: false, range: rg, error: false },
-      }));
-    } catch {
-      setRecRangeCache((prev) => ({
-        ...prev,
-        [cacheKey]: { loading: false, range: null, error: true },
-      }));
     }
   }
 
@@ -294,7 +233,9 @@ export default function EnvironmentScreen({ navigation }) {
       else if (nextProfile.mushroom_type && nextProfile.stage) {
         const rg = await fetchOptimalRange(nextProfile.mushroom_type, nextProfile.stage);
         setRange(rg);
-      } else setRange(null);
+      } else {
+        setRange(null);
+      }
 
       const datesRes = await fetchEnvironmentAvailableDates();
       const dates = datesRes.dates || [];
@@ -304,7 +245,6 @@ export default function EnvironmentScreen({ navigation }) {
       if (!selectedDate && def) setSelectedDate(def);
 
       await refreshHistory(graphMode, def);
-      await loadRecommendation('current', def);
     } finally {
       setLoading(false);
     }
@@ -322,20 +262,6 @@ export default function EnvironmentScreen({ navigation }) {
     }
 
     setShowDateModal(true);
-  }
-
-  async function openRecDatePicker() {
-    setRecSource('date');
-    const datesRes = await fetchEnvironmentAvailableDates();
-    const dates = datesRes.dates || [];
-    setAvailableDates(dates);
-
-    if (!selectedDate) {
-      const def = pickDefaultDate(dates);
-      if (def) setSelectedDate(def);
-    }
-
-    setShowRecDateModal(true);
   }
 
   useEffect(() => {
@@ -384,15 +310,6 @@ export default function EnvironmentScreen({ navigation }) {
       ? `Date view (${selectedDate})`
       : 'Date view';
 
-  const recHint =
-    recSource === 'current'
-      ? 'Current reading'
-      : recSource === 'last_1h'
-      ? 'Last 1 hour average'
-      : selectedDate
-      ? `Selected date (${selectedDate})`
-      : 'Selected date';
-
   const tempSubtitle = range ? `Target ${range.temp_min}–${range.temp_max}°C` : null;
   const rhSubtitle = range ? `Target ${range.rh_min}–${range.rh_max}%` : null;
   const co2Subtitle = hasAnyCo2 ? `Target ${co2RangeLabel}` : 'No CO₂ range for this variety';
@@ -403,6 +320,10 @@ export default function EnvironmentScreen({ navigation }) {
 
   function openForecastScreen() {
     navigation.navigate('EnvironmentForecast');
+  }
+
+  function openVarietyRecommendationScreen() {
+    navigation.navigate('EnvironmentVariety');
   }
 
   return (
@@ -439,29 +360,15 @@ export default function EnvironmentScreen({ navigation }) {
           dateForButtons={dateForButtons}
           graphHint={graphHint}
           openGraphDatePicker={openGraphDatePicker}
-          recSource={recSource}
-          setRecSource={setRecSource}
-          recHint={recHint}
-          recLoading={recLoading}
-          recommendation={recommendation}
-          loadRecommendation={loadRecommendation}
-          openRecDatePicker={openRecDatePicker}
           onOpenSolutionRecommendation={openSolutionRecommendationScreen}
-          ensureRecRangeLoaded={ensureRecRangeLoaded}
+          onOpenVarietyRecommendation={openVarietyRecommendationScreen}
           onOpenForecast={openForecastScreen}
-          recRangeCache={recRangeCache}
-          recExpandedKey={recExpandedKey}
-          setRecExpandedKey={setRecExpandedKey}
-          showAllRecs={showAllRecs}
-          setShowAllRecs={setShowAllRecs}
           showMushroomModal={showMushroomModal}
           setShowMushroomModal={setShowMushroomModal}
           showStageModal={showStageModal}
           setShowStageModal={setShowStageModal}
           showDateModal={showDateModal}
           setShowDateModal={setShowDateModal}
-          showRecDateModal={showRecDateModal}
-          setShowRecDateModal={setShowRecDateModal}
           mushroomItems={mushroomItems}
           stageItems={stageItems}
           dateItems={dateItems}
@@ -481,12 +388,6 @@ export default function EnvironmentScreen({ navigation }) {
             setShowDateModal(false);
             setSelectedDate(item.key);
             setGraphMode('date');
-          }}
-          onPickRecDate={async (item) => {
-            setShowRecDateModal(false);
-            setSelectedDate(item.key);
-            setRecSource('date');
-            await loadRecommendation('date', item.key);
           }}
         />
       </ScrollView>
