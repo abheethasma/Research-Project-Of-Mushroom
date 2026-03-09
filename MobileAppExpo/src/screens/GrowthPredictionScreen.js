@@ -17,7 +17,11 @@ import {
   fetchGrowthHistory,
 } from '../services/growthApi';
 
-const BACKEND_BASE_URL = 'http://127.0.0.1:8000';
+import { BACKEND_URL } from '../services/api';
+
+
+const BACKEND_BASE_URL = BACKEND_URL;
+
 
 export default function GrowthPredictionScreen() {
   const [selectedAsset, setSelectedAsset] = useState(null);
