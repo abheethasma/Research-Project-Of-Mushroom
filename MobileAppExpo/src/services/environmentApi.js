@@ -67,3 +67,17 @@ export async function fetchEnvironmentHealth() {
   if (!res.ok) throw new Error('Failed to fetch environment health');
   return res.json();
 }
+
+export async function fetchEnvironmentSolutionRecommendation(lang = 'en') {
+  const res = await fetch(
+    `${BACKEND_URL}/api/v1/environment/solution-recommendation?lang=${encodeURIComponent(lang)}`
+  );
+  if (!res.ok) throw new Error('Failed to fetch solution recommendation');
+  return res.json();
+}
+
+export async function fetchEnvironmentForecast60m() {
+  const res = await fetch(`${BACKEND_URL}/api/v1/environment/forecast-60m`);
+  if (!res.ok) throw new Error('Failed to fetch 60-minute forecast');
+  return res.json();
+}

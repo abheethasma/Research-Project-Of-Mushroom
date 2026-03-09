@@ -88,7 +88,7 @@ export async function predictMushroomType(imageUri) {
  * POST /api/v1/disease/predict (Disease Detection)
  * Upload image using multipart/form-data
  */
-export async function predictDiseaseFromImage(imageUri) {
+export async function predictDiseaseFromImage(imageUri, bagId) {
   const url = buildUrl("/api/v1/disease/predict");
 
   const formData = new FormData();
@@ -97,6 +97,7 @@ export async function predictDiseaseFromImage(imageUri) {
     name: "mushroom.jpg",
     type: "image/jpeg",
   });
+  formData.append("bag_id", bagId || "default_bag"); // Add bag_id here
 
   const response = await fetch(url, {
     method: "POST",
@@ -116,4 +117,23 @@ export async function predictDiseaseFromImage(imageUri) {
   }
 
   return data;
+}
+
+/**
+ * GET /api/v1/disease/history/{bag_id} (Get disease history for a specific bag)
+ */
+export async function getDiseaseHistory(bagId) {
+  if (!bagId) {
+    return [];
+  }
+
+  const res = await fetch(
+    `${BACKEND_URL}/api/v1/disease/history/${encodeURIComponent(bagId)}`
+  );
+
+  if (!res.ok) {
+    throw new Error("History request failed");
+  }
+
+  return await res.json();
 }

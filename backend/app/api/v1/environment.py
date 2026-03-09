@@ -10,6 +10,8 @@ from app.schemas.environment import (
     EnvironmentProfileOut,
     OptimalRangeOut,
     EnvironmentRecommendationOut,
+    EnvironmentSolutionRecommendationOut,
+    EnvironmentForecastOut,
     HistoryResponseOut,
     AvailableDatesOut,
     EnvironmentHealthOut,
@@ -19,6 +21,7 @@ from app.services.environment_service import (
     save_environment_reading,
     get_environment_status,
     get_environment_recommendation,
+    get_environment_solution_recommendation,
     get_environment_options,
     get_environment_profile,
     update_environment_profile,
@@ -27,6 +30,8 @@ from app.services.environment_service import (
     get_environment_available_dates,
     get_environment_health,
 )
+
+from app.services.environment_forecast_service import get_environment_forecast_60m
 
 router = APIRouter()
 
@@ -45,6 +50,13 @@ def read_status():
 def read_recommendation(source: str = "current", date: str | None = None):
     try:
         return get_environment_recommendation(source, date)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    
+@router.get("/solution-recommendation", response_model=EnvironmentSolutionRecommendationOut)
+def read_solution_recommendation(lang: str = "en"):
+    try:
+        return get_environment_solution_recommendation(lang)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -91,3 +103,13 @@ def read_available_dates():
 @router.get("/health", response_model=EnvironmentHealthOut)
 def read_health(offline_after_seconds: int = 60):
     return get_environment_health(offline_after_seconds)
+
+
+@router.get("/forecast-60m", response_model=EnvironmentForecastOut)
+def read_environment_forecast_60m():
+    try:
+        return get_environment_forecast_60m()
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

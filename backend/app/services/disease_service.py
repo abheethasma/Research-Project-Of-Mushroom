@@ -11,24 +11,20 @@ import tensorflow as tf
 
 @dataclass
 class DiseasePrediction:
-    """
-    Internal representation of a disease prediction.
-    """
-    label: str
-    confidence: float
+    label: str          # "black_mold" | "green_mold" | "healthy" | "invalid_image"
+    confidence: float   # 0.0 - 1.0
+    severity: str       # "none" | "mild" | "moderate" | "severe"
 
 
-# Must match the order used in Colab:
-# CLASS_NAMES = ['healthy', 'black_mold', 'green_mold']
-CLASS_NAMES = ["healthy", "black_mold", "green_mold"]
+# MUST match Colab output exactly (order + spelling)
+CLASS_NAMES = ["black_mold", "green_mold", "healthy", "other"]
 
 IMG_SIZE = (224, 224)
-
-# If max softmax probability is below this, we call it "invalid" / not a mushroom bag
-CONFIDENCE_THRESHOLD = 0.80  # you can tune this value later
 INVALID_LABEL = "invalid_image"
 
-# Path to backend/models/mushroom_disease_model.h5
+# Extra safety: if confidence is extremely low, also mark invalid
+LOW_CONF_THRESHOLD = 0.40
+
 BASE_DIR = Path(__file__).resolve().parents[2]  # .../backend
 MODEL_PATH = BASE_DIR / "models" / "mushroom_disease_model.h5"
 
@@ -36,9 +32,6 @@ _model = None
 
 
 def _get_model():
-    """
-    Load the TensorFlow model once and reuse it.
-    """
     global _model
     if _model is None:
         if not MODEL_PATH.exists():
@@ -48,44 +41,47 @@ def _get_model():
 
 
 def _preprocess_image(image_bytes: bytes) -> np.ndarray:
-    """
-    Convert uploaded image bytes into a batch tensor.
-
-    The Keras model already has a Rescaling layer that converts
-    [0, 255] -> [-1, 1]. So here we only:
-      - load the image
-      - resize
-      - convert to float32
-      - add batch dimension
-    """
     image = Image.open(BytesIO(image_bytes)).convert("RGB")
     image = image.resize(IMG_SIZE)
-
-    arr = np.array(image).astype("float32")  # values 0..255
-    arr = np.expand_dims(arr, axis=0)       # shape (1, 224, 224, 3)
-
+    arr = np.array(image).astype("float32")
+    arr = np.expand_dims(arr, axis=0)
     return arr
 
 
+def _severity_from_confidence(label: str, confidence: float) -> str:
+    if label in ["healthy", INVALID_LABEL]:
+        return "none"
+    if confidence < 0.75:
+        return "mild"
+    elif confidence < 0.90:
+        return "moderate"
+    return "severe"
+
+
+def severity_to_score(severity: str) -> int:
+    return {"none": 0, "mild": 1, "moderate": 2, "severe": 3}.get(severity, 0)
+
+
 def predict_disease_from_image(image_bytes: bytes) -> DiseasePrediction:
-    """
-    Run inference using the trained Keras model and return label + confidence.
-
-    If the model is not confident enough (max probability < CONFIDENCE_THRESHOLD),
-    we treat the image as invalid / out-of-domain.
-    """
     model = _get_model()
-    input_tensor = _preprocess_image(image_bytes)
+    x = _preprocess_image(image_bytes)
 
-    preds = model.predict(input_tensor)
-    preds = preds[0]  # shape (num_classes,)
+    probs = model.predict(x)[0]  # softmax probs
+    idx = int(np.argmax(probs))
+    confidence = float(probs[idx])
+    best_label = CLASS_NAMES[idx]
 
-    class_idx = int(np.argmax(preds))
-    confidence = float(preds[class_idx])
+    # If model says "other" -> invalid_image
+    # Also if confidence is extremely low -> invalid_image
+    if best_label == "other" or confidence < LOW_CONF_THRESHOLD:
+        final_label = INVALID_LABEL
+    else:
+        final_label = best_label
 
-    if confidence < CONFIDENCE_THRESHOLD:
-        # Not confident -> we say this is not a valid mushroom-disease image
-        return DiseasePrediction(label=INVALID_LABEL, confidence=confidence)
+    severity = _severity_from_confidence(final_label, confidence)
 
-    label = CLASS_NAMES[class_idx]
-    return DiseasePrediction(label=label, confidence=confidence)
+    return DiseasePrediction(
+        label=final_label,
+        confidence=confidence,
+        severity=severity,
+    )
