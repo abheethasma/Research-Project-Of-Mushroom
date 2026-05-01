@@ -105,6 +105,67 @@ function SelectModal({ visible, title, items, onClose, onPick }) {
   );
 }
 
+function getAutoYAxis(points, field, fallbackMin, fallbackMax, options = {}) {
+  const {
+    minWindow = 10,
+    paddingRatio = 0.2,
+    step = 5,
+    hardMin = null,
+    hardMax = null,
+  } = options;
+
+  const values = (points || [])
+    .map((p) => p?.[field])
+    .filter((v) => v !== null && v !== undefined && Number.isFinite(Number(v)))
+    .map(Number);
+
+  if (!values.length) {
+    return {
+      yMin: fallbackMin,
+      yMax: fallbackMax,
+      yTicks: [fallbackMin, (fallbackMin + fallbackMax) / 2, fallbackMax].map((v) =>
+        Number(v.toFixed(0))
+      ),
+    };
+  }
+
+  let minVal = Math.min(...values);
+  let maxVal = Math.max(...values);
+
+  let range = maxVal - minVal;
+
+  if (range < minWindow) {
+    const mid = (minVal + maxVal) / 2;
+    minVal = mid - minWindow / 2;
+    maxVal = mid + minWindow / 2;
+    range = minWindow;
+  } else {
+    const padding = range * paddingRatio;
+    minVal -= padding;
+    maxVal += padding;
+  }
+
+  let yMin = Math.floor(minVal / step) * step;
+  let yMax = Math.ceil(maxVal / step) * step;
+
+  if (hardMin !== null) yMin = Math.max(hardMin, yMin);
+  if (hardMax !== null) yMax = Math.min(hardMax, yMax);
+
+  if (yMin === yMax) {
+    yMin -= step;
+    yMax += step;
+  }
+
+  const mid = (yMin + yMax) / 2;
+
+  return {
+    yMin,
+    yMax,
+    yTicks: [yMin, mid, yMax].map((v) => Number(v.toFixed(0))),
+  };
+}
+
+
 function SimpleLineChart({
   points,
   field,
@@ -410,6 +471,42 @@ export default function EnvironmentView(props) {
     onPickGraphDate,
   } = props;
 
+  const tempAxis = useMemo(
+    () =>
+      getAutoYAxis(historyPoints, 'temperature', 0, 45, {
+        minWindow: 10,
+        paddingRatio: 0.25,
+        step: 5,
+        hardMin: 0,
+        hardMax: 50,
+      }),
+    [historyPoints]
+  );
+
+  const humidityAxis = useMemo(
+    () =>
+      getAutoYAxis(historyPoints, 'humidity', 0, 100, {
+        minWindow: 20,
+        paddingRatio: 0.25,
+        step: 5,
+        hardMin: 0,
+        hardMax: 100,
+      }),
+    [historyPoints]
+  );
+
+  const co2Axis = useMemo(
+    () =>
+      getAutoYAxis(historyPoints, 'co2', 0, 5000, {
+        minWindow: 1000,
+        paddingRatio: 0.25,
+        step: 500,
+        hardMin: 0,
+        hardMax: 5000,
+      }),
+    [historyPoints]
+  );
+
   return (
     <>
       <View style={styles.header}>
@@ -622,14 +719,41 @@ export default function EnvironmentView(props) {
 
         <Text style={styles.subtle}>{graphHint}</Text>
 
-        <Text style={[styles.sectionTitle, { marginTop: 12 }]}>Temperature (°C)</Text>
-        <SimpleLineChart points={historyPoints} field="temperature" yMin={0} yMax={45} yTicks={[0, 15, 30, 45]} showAverage/>
+        <Text style={[styles.sectionTitle, { marginTop: 12 }]}>
+          Temperature trend (°C)
+        </Text>
+        <SimpleLineChart
+          points={historyPoints}
+          field="temperature"
+          yMin={tempAxis.yMin}
+          yMax={tempAxis.yMax}
+          yTicks={tempAxis.yTicks}
+          showAverage
+        />
 
-        <Text style={[styles.sectionTitle, { marginTop: 12 }]}>Humidity (% RH)</Text>
-        <SimpleLineChart points={historyPoints} field="humidity" yMin={0} yMax={100} yTicks={[0, 50, 100]} showAverage />
+        <Text style={[styles.sectionTitle, { marginTop: 12 }]}>
+          Humidity trend (%RH)
+        </Text>
+        <SimpleLineChart
+          points={historyPoints}
+          field="humidity"
+          yMin={humidityAxis.yMin}
+          yMax={humidityAxis.yMax}
+          yTicks={humidityAxis.yTicks}
+          showAverage
+        />
 
-        <Text style={[styles.sectionTitle, { marginTop: 12 }]}>CO₂ (ppm)</Text>
-        <SimpleLineChart points={historyPoints} field="co2" yMin={0} yMax={5000} yTicks={[0, 2500, 5000]} showAverage />
+        <Text style={[styles.sectionTitle, { marginTop: 12 }]}>
+          CO₂ trend (ppm)
+        </Text>
+        <SimpleLineChart
+          points={historyPoints}
+          field="co2"
+          yMin={co2Axis.yMin}
+          yMax={co2Axis.yMax}
+          yTicks={co2Axis.yTicks}
+          showAverage
+        />
       </Card>
 
 
