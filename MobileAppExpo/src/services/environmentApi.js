@@ -76,8 +76,21 @@ export async function fetchEnvironmentSolutionRecommendation(lang = 'en') {
   return res.json();
 }
 
-export async function fetchEnvironmentForecast60m() {
-  const res = await fetch(`${BACKEND_URL}/api/v1/environment/forecast-60m`);
-  if (!res.ok) throw new Error('Failed to fetch 60-minute forecast');
+export async function fetchEnvironmentForecast(horizon = '1h') {
+  const res = await fetch(
+    `${BACKEND_URL}/api/v1/environment/forecast?horizon=${encodeURIComponent(horizon)}`
+  );
+
+  if (!res.ok) {
+    let detail = `Failed to fetch ${horizon} forecast`;
+    try {
+      const err = await res.json();
+      detail = err?.detail || detail;
+    } catch (_) {
+      // ignore parse failure
+    }
+    throw new Error(detail);
+  }
+
   return res.json();
 }

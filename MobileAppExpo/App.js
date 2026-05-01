@@ -39,7 +39,7 @@ function EnvironmentStackNavigator() {
       <EnvironmentStack.Screen
         name="EnvironmentForecast"
         component={EnvironmentForecastScreen}
-        options={{ title: '60-Minute Forecast' }}
+        options={{ title: 'Forecast' }}
       />
       <EnvironmentStack.Screen
         name="EnvironmentVariety"
@@ -55,15 +55,18 @@ export default function App() {
     <NavigationContainer>
       <Tab.Navigator
         screenOptions={({ route }) => ({
+          lazy: true,
+          detachInactiveScreens: true,
+
           headerShown: true,
           headerStyle: { backgroundColor: '#0f172a' },
           headerTintColor: '#e5e7eb',
           headerTitleStyle: { fontWeight: '600' },
-
+          
           tabBarStyle: { backgroundColor: '#020617' },
           tabBarActiveTintColor: '#22c55e',
           tabBarInactiveTintColor: '#64748b',
-
+          
           tabBarIcon: ({ color, size }) => {
             if (route.name === 'Type') {
               return (

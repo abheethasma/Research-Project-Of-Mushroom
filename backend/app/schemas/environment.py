@@ -96,26 +96,27 @@ class EnvironmentHealthOut(BaseModel):
     node_id: str | None = None
     seconds_since_last: int | None = None
 
+class EnvironmentSolutionIssueOut(BaseModel):
+    issue_code: str | None = None
+    metric: str | None = None
+    current_value: float | None = None
+    optimal_min: float | None = None
+    optimal_max: float | None = None
+    title: str | None = None
+    immediate: list[str] = []
+    short_term: list[str] = []
+    long_term: list[str] = []
+    safety: list[str] = []
+    llm_message: str | None = None
+
 class EnvironmentSolutionRecommendationOut(BaseModel):
     language: str = "en"
     mushroom_type: str | None = None
     stage: str | None = None
 
-    issue_code: str | None = None
-    metric: str | None = None
+    primary_issue_code: str | None = None
+    active_issues: list[EnvironmentSolutionIssueOut] = []
 
-    current_value: float | None = None
-    optimal_min: float | None = None
-    optimal_max: float | None = None
-
-    title: str | None = None
-    immediate: list[str] = Field(default_factory=list)
-    short_term: list[str] = Field(default_factory=list)
-    long_term: list[str] = Field(default_factory=list)
-    safety: list[str] = Field(default_factory=list)
-
-    llm_message: str | None = None
-    used_llm: bool = False
     note: str | None = None
 
 
@@ -126,9 +127,11 @@ class OutdoorWeatherOut(BaseModel):
 
 
 class EnvironmentForecastOut(BaseModel):
+    horizon_key: str = "1h"
     horizon_minutes: int = 60
-    generated_at: datetime
+    horizon_label: str | None = None
 
+    generated_at: datetime
     mushroom_type: str | None = None
     stage: str | None = None
 
@@ -143,8 +146,8 @@ class EnvironmentForecastOut(BaseModel):
     optimal_rh_min: float | None = None
     optimal_rh_max: float | None = None
 
-    temp_status: str | None = None   # within / high / low
-    rh_status: str | None = None     # within / high / low
+    temp_status: str | None = None  # within / high / low
+    rh_status: str | None = None    # within / high / low
 
     warning: bool = False
     warning_message: str | None = None
@@ -152,4 +155,6 @@ class EnvironmentForecastOut(BaseModel):
     outdoor: OutdoorWeatherOut | None = None
 
     model_temp_mae: float | None = None
-    model_rh_mae: float | None = None    
+    model_rh_mae: float | None = None
+    model_temp_r2: float | None = None
+    model_rh_r2: float | None = None 

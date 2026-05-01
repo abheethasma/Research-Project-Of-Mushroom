@@ -31,7 +31,7 @@ from app.services.environment_service import (
     get_environment_health,
 )
 
-from app.services.environment_forecast_service import get_environment_forecast_60m
+from app.services.environment_forecast_service import get_environment_forecast
 
 router = APIRouter()
 
@@ -104,12 +104,12 @@ def read_available_dates():
 def read_health(offline_after_seconds: int = 60):
     return get_environment_health(offline_after_seconds)
 
-
-@router.get("/forecast-60m", response_model=EnvironmentForecastOut)
-def read_environment_forecast_60m():
+@router.get("/forecast", response_model=EnvironmentForecastOut)
+def read_environment_forecast(horizon: str = "1h"):
     try:
-        return get_environment_forecast_60m()
+        return get_environment_forecast(horizon)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    

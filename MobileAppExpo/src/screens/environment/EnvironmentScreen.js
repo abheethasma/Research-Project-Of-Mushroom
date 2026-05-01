@@ -214,14 +214,8 @@ export default function EnvironmentScreen({ navigation }) {
       ]);
 
       setOptions(opt);
-
       setReading(st.reading ?? null);
       setAlerts(st.alerts || []);
-      await refreshHealth();
-
-      const nextPrev = { temperature: false, humidity: false };
-      for (const a of st.alerts || []) nextPrev[a.param] = !!a.active;
-      prevAlertActiveRef.current = nextPrev;
 
       const nextProfile = {
         mushroom_type: st.profile?.mushroom_type ?? prof.mushroom_type ?? null,
@@ -229,23 +223,37 @@ export default function EnvironmentScreen({ navigation }) {
       };
       setProfile(nextProfile);
 
-      if (st.optimal_range) setRange(st.optimal_range);
-      else if (nextProfile.mushroom_type && nextProfile.stage) {
+      if (st.optimal_range) {
+        setRange(st.optimal_range);
+      } else if (nextProfile.mushroom_type && nextProfile.stage) {
         const rg = await fetchOptimalRange(nextProfile.mushroom_type, nextProfile.stage);
         setRange(rg);
       } else {
         setRange(null);
       }
 
-      const datesRes = await fetchEnvironmentAvailableDates();
-      const dates = datesRes.dates || [];
-      setAvailableDates(dates);
+      // Show screen as soon as critical content is ready
+      setLoading(false);
 
-      const def = selectedDate ?? pickDefaultDate(dates);
-      if (!selectedDate && def) setSelectedDate(def);
+      // Load non-critical things in background
+      refreshHealth();
 
-      await refreshHistory(graphMode, def);
-    } finally {
+      fetchEnvironmentAvailableDates()
+        .then((datesRes) => {
+          const dates = datesRes.dates || [];
+          setAvailableDates(dates);
+
+          const def = selectedDate ?? pickDefaultDate(dates);
+          if (!selectedDate && def) setSelectedDate(def);
+
+          return refreshHistory(graphModeRef.current, def);
+        })
+        .catch(() => {
+          setAvailableDates([]);
+          setHistoryPoints([]);
+        });
+
+    } catch (e) {
       setLoading(false);
     }
   }

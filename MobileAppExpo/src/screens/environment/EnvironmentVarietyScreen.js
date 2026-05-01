@@ -62,7 +62,7 @@ function SelectModal({ visible, title, items, onClose, onPick }) {
 }
 
 function formatSourceLabel(source, selectedDate) {
-  if (source === 'current') return 'Based on current reading';
+  if (source === 'current') return 'Current Readings';
   if (source === 'last_1h') return 'Based on last 1 hour average';
   if (source === 'date') return selectedDate ? `Based on ${selectedDate}` : 'Based on selected date';
   return 'Based on selected data';
@@ -220,6 +220,114 @@ function RecommendationCard({
   );
 }
 
+function getPenalty(value, min, max) {
+  const v = Number(value);
+  const mn = Number(min);
+  const mx = Number(max);
+
+  if (!Number.isFinite(v) || !Number.isFinite(mn) || !Number.isFinite(mx)) return null;
+  if (v < mn) return Number((mn - v).toFixed(2));
+  if (v > mx) return Number((v - mx).toFixed(2));
+  return 0;
+}
+
+function ScoreExplanationCard({ recommendation, profile, rangeCache, expandedKey }) {
+  const top = recommendation?.recommendations?.[0];
+
+  if (!recommendation || !top) return null;
+
+  const temp = recommendation?.temperature;
+  const rh = recommendation?.humidity;
+
+  const cacheKey = `${top.mushroom_type}__${profile?.stage || 'no_stage'}`;
+  const rg = rangeCache?.[cacheKey]?.range;
+
+  if (temp == null || rh == null || !rg) {
+    return (
+      <View
+        style={{
+          marginTop: 12,
+          padding: 12,
+          borderRadius: 14,
+          borderWidth: 1,
+          borderColor: C.border,
+          backgroundColor: C.surface2,
+        }}
+      >
+        <Text style={[styles.subtle, { marginTop: 0, lineHeight: 20 }]}>
+          The score is based on how far the current temperature and humidity are from the ideal range.
+          Lower score means a better match.
+        </Text>
+      </View>
+    );
+  }
+
+  const tempPenalty = getPenalty(temp, rg.temp_min, rg.temp_max);
+  const rhPenalty = getPenalty(rh, rg.rh_min, rg.rh_max);
+  const finalScore =
+    tempPenalty != null && rhPenalty != null
+      ? Number((tempPenalty * 1.0 + rhPenalty * 0.5).toFixed(2))
+      : null;
+
+  return (
+    <View
+      style={{
+        marginTop: 12,
+        padding: 12,
+        borderRadius: 14,
+        borderWidth: 1,
+        borderColor: C.border,
+        backgroundColor: C.surface2,
+      }}
+    >
+      <Text style={[styles.subtle, { marginTop: 0, lineHeight: 17 }]}>
+        The system compares the current temperature and humidity with the ideal fruiting range of
+        each mushroom variety.
+      </Text>
+
+      <Text style={[styles.subtle, { marginTop: 8, lineHeight: 17 }]}>
+        If a value is inside the range, its penalty is 0. If it is outside the range, the penalty is
+        the distance from the nearest limit.
+      </Text>
+
+      <Text style={[styles.subtle, { marginTop: 8, lineHeight: 17, fontWeight: '700', color: C.text }]}>
+        Score = Temperature penalty × 1.0 + Humidity penalty × 0.5
+      </Text>
+
+      <Text style={[styles.subtle, { marginTop: 14, color: C.text, fontWeight: '700' } ]}>Example using current best match</Text>
+
+      <Text style={[styles.subtle, { marginTop: 8, lineHeight: 17 }]}>
+        Current temperature = {Number(temp).toFixed(1)}°C
+      </Text>
+      <Text style={[styles.subtle, { marginTop:0, lineHeight: 17 }]}>
+        Current humidity = {Number(rh).toFixed(1)}%RH
+      </Text>
+
+      <Text style={[styles.subtle, { marginTop: 10, lineHeight: 17 }]}>
+        {top.mushroom_type} target temperature = {rg.temp_min} to {rg.temp_max}°C
+      </Text>
+      <Text style={[styles.subtle, { marginTop: 0, lineHeight: 17 }]}>
+        Temperature penalty = {tempPenalty}
+      </Text>
+
+      <Text style={[styles.subtle, { marginTop: 10, lineHeight: 17 }]}>
+        {top.mushroom_type} target humidity = {rg.rh_min} to {rg.rh_max}%RH
+      </Text>
+      <Text style={[styles.subtle, { marginTop: 0, lineHeight: 17 }]}>
+        Humidity penalty = {rhPenalty}
+      </Text>
+
+      <Text style={[styles.subtle, { marginTop: 10, lineHeight: 17, fontWeight: '700', color: C.text }]}>
+        Final score = ({tempPenalty} × 1.0) + ({rhPenalty} × 0.5) = {finalScore}
+      </Text>
+
+      <Text style={[styles.subtle, { marginTop: 10, lineHeight: 17 }]}>
+        Lower score means the environment is closer to that variety’s ideal range.
+      </Text>
+    </View>
+  );
+}
+
 export default function EnvironmentVarietyScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -232,6 +340,7 @@ export default function EnvironmentVarietyScreen() {
   const [recommendation, setRecommendation] = useState(null);
   const [recLoading, setRecLoading] = useState(false);
 
+  const [showScoreInfo, setShowScoreInfo] = useState(false);
   const [showDateModal, setShowDateModal] = useState(false);
 
   const [expandedKey, setExpandedKey] = useState(null);
@@ -339,6 +448,12 @@ export default function EnvironmentVarietyScreen() {
       setRefreshing(false);
     }
   }
+  useEffect(() => {
+    const top = recommendation?.recommendations?.[0];
+    if (top?.mushroom_type && profile?.stage) {
+      ensureRangeLoaded(top.mushroom_type);
+    }
+  }, [recommendation, profile?.stage]);
 
   useEffect(() => {
     loadInitial();
@@ -417,7 +532,8 @@ export default function EnvironmentVarietyScreen() {
 
           {topPick ? (
             <>
-              <Text style={[styles.sectionTitle, { marginTop: 18 }]}>Best match</Text>
+              <Text style={[styles.sectionTitle, { marginTop: 12}]}>Best match</Text>
+              <Text style={[styles.subtle, { marginTop: 2 }]}>Lower score means a better match.</Text>
 
               <RecommendationCard
                 item={topPick}
@@ -456,11 +572,44 @@ export default function EnvironmentVarietyScreen() {
                 </>
               ) : null}
 
-              <Text style={styles.subtle}>Lower score means a better match.</Text>
+              
             </>
           ) : (
             <Text style={styles.subtle}>No data available for the selected source yet.</Text>
           )}
+        </View>
+
+        <View style={{ marginTop: 14 }}>
+          <Pressable
+            onPress={() => setShowScoreInfo((prev) => !prev)}
+            style={{
+              paddingVertical: 12,
+              paddingHorizontal: 14,
+              borderRadius: 14,
+              borderWidth: 1,
+              borderColor: C.border,
+              backgroundColor: C.surface2,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
+          >
+            <Text style={{ color: C.text }}>
+              How is this score calculated?
+            </Text>
+            <Text style={{ color: C.muted, fontWeight: '800' }}>
+              {showScoreInfo ? '▴' : '▾'}
+            </Text>
+          </Pressable>
+
+          {showScoreInfo ? (
+            <ScoreExplanationCard
+              recommendation={recommendation}
+              profile={profile}
+              rangeCache={rangeCache}
+              expandedKey={expandedKey}
+            />
+          ) : null}
         </View>
       </ScrollView>
 
