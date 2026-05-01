@@ -597,7 +597,7 @@ def _build_plain_solution_message(
     return "\n".join(lines)
 
 
-def _detect_all_issues(reading: dict, optimal: dict) -> list[tuple[str, float, float, float]]:
+def _detect_all_issues(reading: dict, optimal: dict) -> list[tuple[str, float, float | None, float | None]]:
     issues = []
 
     temp = reading.get("temperature")
@@ -709,19 +709,34 @@ def get_environment_solution_recommendation(lang: str = "en") -> EnvironmentSolu
             note=note,
         )
 
+    cache_key = _build_solution_cache_key(language, profile, reading)
+    now = time.time()
+
+    cached = SOLUTION_CACHE.get(cache_key)
+    if cached and (now - cached["ts"] < SOLUTION_CACHE_TTL):
+        return cached["data"]
+
     optimal = kb_get_optimal_range(profile["mushroom_type"], profile["stage"])
     if not optimal:
         note = (
             "Optimal range not found for current profile."
             if language == "en"
-            else "දැනට තෝරා ඇති profile සඳහා optimal range එක hamu nowee."
+            else "දැනට තෝරා ඇති profile සඳහා optimal range එක හමු නොවේ."
         )
-        return EnvironmentSolutionRecommendationOut(
+
+        result = EnvironmentSolutionRecommendationOut(
             language=language,
             mushroom_type=profile.get("mushroom_type"),
             stage=profile.get("stage"),
             note=note,
         )
+
+        SOLUTION_CACHE[cache_key] = {
+            "data": result,
+            "ts": now,
+        }
+
+        return result
 
     issues = _detect_all_issues(reading, optimal)
 
@@ -731,12 +746,20 @@ def get_environment_solution_recommendation(lang: str = "en") -> EnvironmentSolu
             if language == "en"
             else "දැනට පරිසර අගයන් සුදුසු පරාසය තුළ ඇත."
         )
-        return EnvironmentSolutionRecommendationOut(
+
+        result = EnvironmentSolutionRecommendationOut(
             language=language,
             mushroom_type=profile.get("mushroom_type"),
             stage=profile.get("stage"),
             note=note,
         )
+
+        SOLUTION_CACHE[cache_key] = {
+            "data": result,
+            "ts": now,
+        }
+
+        return result
 
     active_issues = []
     for issue_code, current_value, optimal_min, optimal_max in issues:
@@ -751,10 +774,36 @@ def get_environment_solution_recommendation(lang: str = "en") -> EnvironmentSolu
 
     primary_issue_code = active_issues[0]["issue_code"] if active_issues else None
 
-    return EnvironmentSolutionRecommendationOut(
+    result = EnvironmentSolutionRecommendationOut(
         language=language,
         mushroom_type=profile.get("mushroom_type"),
         stage=profile.get("stage"),
         primary_issue_code=primary_issue_code,
         active_issues=active_issues,
     )
+
+    SOLUTION_CACHE[cache_key] = {
+        "data": result,
+        "ts": now,
+    }
+
+    return result
+
+def _cache_num(value, decimals: int = 1) -> str:
+    if value is None:
+        return "none"
+    try:
+        return str(round(float(value), decimals))
+    except Exception:
+        return "none"
+
+
+def _build_solution_cache_key(language: str, profile: dict, reading: dict) -> str:
+    mushroom_type = profile.get("mushroom_type")
+    stage = profile.get("stage")
+
+    temp = _cache_num(reading.get("temperature"), 1)
+    rh = _cache_num(reading.get("humidity"), 1)
+    co2 = _cache_num(reading.get("co2") or reading.get("co2_estimated"), 0)
+
+    return f"{language}|{mushroom_type}|{stage}|{temp}|{rh}|{co2}"

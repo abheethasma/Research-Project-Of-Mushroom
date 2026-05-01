@@ -13,6 +13,8 @@ import {
 import { fetchEnvironmentSolutionRecommendation } from '../../services/environmentApi';
 import styles, { C } from './styles';
 
+const SOLUTION_CACHE_TTL_MS = 60 * 1000; // 1 minute
+
 function SectionCard({ title, children, tint = '#F6F8FC', border = 'rgba(15, 23, 42, 0.10)' }) {
   return (
     <View
@@ -244,8 +246,49 @@ export default function EnvironmentSolutionScreen() {
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
   const [selectedIssueCode, setSelectedIssueCode] = useState(null);
+  const [solutionCache, setSolutionCache] = useState({});
+  const [switchingLang, setSwitchingLang] = useState(false);
 
   const copy = useMemo(() => getCopy(lang), [lang]);
+
+  function getDefaultIssueCode(res) {
+    return res?.primary_issue_code || res?.active_issues?.[0]?.issue_code || null;
+  }
+
+  function applySolutionResponse(nextLang, res) {
+    setLang(nextLang);
+    setData(res);
+    setSelectedIssueCode(getDefaultIssueCode(res));
+  }
+
+  function isCacheValid(cached) {
+    return cached && Date.now() - cached.ts < SOLUTION_CACHE_TTL_MS;
+  }
+
+  async function fetchAndCacheSolution(nextLang) {
+    const res = await fetchEnvironmentSolutionRecommendation(nextLang);
+
+    setSolutionCache((prev) => ({
+      ...prev,
+      [nextLang]: {
+        data: res,
+        ts: Date.now(),
+      },
+    }));
+
+    return res;
+  }
+
+  function prefetchOtherLanguage(currentLang) {
+    const otherLang = currentLang === 'en' ? 'si' : 'en';
+    const cached = solutionCache[otherLang];
+
+    if (isCacheValid(cached)) return;
+
+    fetchAndCacheSolution(otherLang).catch((e) => {
+      console.log('prefetch solution language error:', e);
+    });
+  }
 
   async function loadRecommendation(nextLang = lang, isRefresh = false) {
     const nextCopy = getCopy(nextLang);
@@ -255,11 +298,25 @@ export default function EnvironmentSolutionScreen() {
       else setLoading(true);
 
       setError('');
-      const res = await fetchEnvironmentSolutionRecommendation(nextLang);
-      setData(res);
-      setSelectedIssueCode(
-        res?.primary_issue_code || res?.active_issues?.[0]?.issue_code || null
-      );
+
+      const cached = solutionCache[nextLang];
+
+      if (!isRefresh && isCacheValid(cached)) {
+        applySolutionResponse(nextLang, cached.data);
+
+        setTimeout(() => {
+          prefetchOtherLanguage(nextLang);
+        }, 200);
+
+        return;
+      }
+
+      const res = await fetchAndCacheSolution(nextLang);
+      applySolutionResponse(nextLang, res);
+
+      setTimeout(() => {
+        prefetchOtherLanguage(nextLang);
+      }, 200);
     } catch (e) {
       console.log('fetchEnvironmentSolutionRecommendation error:', e);
       setError(nextCopy.error);
@@ -272,9 +329,36 @@ export default function EnvironmentSolutionScreen() {
   }
 
   useEffect(() => {
-    loadRecommendation(lang);
+    loadRecommendation('en');
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lang]);
+  }, []);
+
+  async function switchLanguage() {
+    const nextLang = lang === 'en' ? 'si' : 'en';
+    const cached = solutionCache[nextLang];
+
+    if (isCacheValid(cached)) {
+      applySolutionResponse(nextLang, cached.data);
+      prefetchOtherLanguage(nextLang);
+      return;
+    }
+
+    try {
+      setSwitchingLang(true);
+      setError('');
+
+      const res = await fetchAndCacheSolution(nextLang);
+      applySolutionResponse(nextLang, res);
+
+      setTimeout(() => {
+        prefetchOtherLanguage(nextLang);
+      }, 200);
+    } catch (e) {
+      console.log('switchLanguage error:', e);
+    } finally {
+      setSwitchingLang(false);
+    }
+  }
 
   const selectedIssue =
     data?.active_issues?.find((item) => item.issue_code === selectedIssueCode) || null;
@@ -316,10 +400,13 @@ export default function EnvironmentSolutionScreen() {
             </View>
 
             <Pressable
-              style={styles.selectBtn}
-              onPress={() => setLang((prev) => (prev === 'en' ? 'si' : 'en'))}
+              style={[styles.selectBtn, switchingLang && { opacity: 0.7 }]}
+              onPress={switchLanguage}
+              disabled={switchingLang}
             >
-              <Text style={styles.selectBtnText}>{copy.languageLabel}</Text>
+              <Text style={styles.selectBtnText}>
+                {switchingLang ? '...' : copy.languageLabel}
+              </Text>
             </Pressable>
           </View>
 
