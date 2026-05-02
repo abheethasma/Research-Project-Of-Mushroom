@@ -2,7 +2,7 @@
   "expo": {
     "name": "MushroomApp",
     "slug": "MobileAppExpo",
-    "version": "2.1.0",
+    "version": "1.0.7",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "mobileappexpo",

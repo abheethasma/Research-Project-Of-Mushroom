@@ -18,7 +18,7 @@ WEATHER_CACHE = {
     "data": None,
     "ts": 0,
 }
-WEATHER_CACHE_TTL = 300  # 5 minutes
+WEATHER_CACHE_TTL = 120  # 2 minutes
 
 FORECAST_CACHE = {}
 FORECAST_CACHE_TTL = 60  # seconds
@@ -147,8 +147,11 @@ def _get_current_outdoor_weather() -> dict:
     params = {
         "latitude": lat,
         "longitude": lon,
-        "current": "temperature_2m,relative_humidity_2m,rain",
-        "timezone": "auto",
+        "current": "temperature_2m,relative_humidity_2m,precipitation,rain,showers,weather_code",
+        "hourly": "precipitation,rain,showers,precipitation_probability",
+        "forecast_hours": 3,
+        "past_hours": 1,
+        "timezone": "Asia/Colombo",
     }
 
     with httpx.Client(timeout=20.0) as client:
@@ -157,18 +160,53 @@ def _get_current_outdoor_weather() -> dict:
         data = response.json()
 
     current = data.get("current") or {}
-    
+    hourly = data.get("hourly") or {}
+
     temperature = current.get("temperature_2m")
     humidity = current.get("relative_humidity_2m")
-    rain = current.get("rain")
 
     if temperature is None or humidity is None:
-        raise ValueError("Outdoor weather API response is missing required values.")
+        raise ValueError("Outdoor weather API response is missing temperature or humidity.")
+
+    current_precipitation = float(current.get("precipitation") or 0.0)
+    current_rain = float(current.get("rain") or 0.0)
+    current_showers = float(current.get("showers") or 0.0)
+
+    hourly_precipitation = 0.0
+    hourly_probability = None
+
+    try:
+        hourly_times = hourly.get("time") or []
+        hourly_precips = hourly.get("precipitation") or []
+        hourly_probs = hourly.get("precipitation_probability") or []
+
+        if hourly_times and hourly_precips:
+            # Use the latest available hourly value from past/current forecast window
+            latest_index = min(len(hourly_times), len(hourly_precips)) - 1
+            hourly_precipitation = float(hourly_precips[latest_index] or 0.0)
+
+            if hourly_probs and latest_index < len(hourly_probs):
+                hourly_probability = hourly_probs[latest_index]
+    except Exception:
+        hourly_precipitation = 0.0
+        hourly_probability = None
+
+    rainfall = max(
+        current_precipitation,
+        current_rain,
+        current_showers,
+        hourly_precipitation,
+    )
 
     result = {
         "temperature": float(temperature),
         "humidity": float(humidity),
-        "rainfall": float(rain or 0.0),
+        "rainfall": float(rainfall),
+        "rain": current_rain,
+        "showers": current_showers,
+        "precipitation": current_precipitation,
+        "precipitation_probability": hourly_probability,
+        "weather_code": current.get("weather_code"),
     }
 
     WEATHER_CACHE["data"] = result

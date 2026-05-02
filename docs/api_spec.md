@@ -1,202 +1,246 @@
 # API Specification – Smart Mushroom Cultivation Analytics Framework
-
-**Version**: 1.0.0  
-**Last Updated**: January 10, 2026  
-**Base Path**: `/api/v1`
+ 
+**Base Path:** `/api/v1`    
 
 ---
 
-## Table of Contents
+## 📘 1. Overview
 
-1. [Overview](#1-overview)
-2. [Base URL & Versioning](#2-base-url--versioning)
-3. [Authentication & Security](#3-authentication--security)
-4. [Response Codes](#4-response-codes)
-5. [Endpoints Summary](#5-endpoints-summary)
-6. [General Endpoints](#6-general-endpoints)
-7. [Environment Module](#7-environment-module)
-8. [Disease Module](#8-disease-module)
-9. [Type Module](#9-type-module)
-10. [Pests Module](#10-pests-module)
-11. [Growth Module](#11-growth-module)
-12. [Data Models](#12-data-models)
-13. [Error Handling](#13-error-handling)
-14. [Rate Limiting](#14-rate-limiting)
+This REST API supports the **Smart Mushroom Cultivation Analytics Framework**, a smart agriculture decision-support system for mushroom cultivation.
 
----
+The API provides backend support for:
 
-## 1. Overview
-
-This REST API provides comprehensive mushroom cultivation management capabilities including:
-
-- **Environmental Monitoring**: Real-time sensor data ingestion and retrieval
-- **Intelligent Alerts**: Consecutive-reading based alert system for temperature and humidity
-- **Historical Analysis**: Time-bucketed historical data with timezone support
-- **Variety Recommendations**: AI-powered mushroom variety matching
-- **Disease Detection**: Image-based disease classification (Keras model)
-- **Type Classification**: Mushroom variety identification (TFLite model)
-- **Future Integrations**: Pest detection and growth prediction (endpoints ready)
-
-### Current Implementation Status
-
-| Module | Status | Notes |
-|--------|--------|-------|
-| Environment | ✅ Fully Integrated | PostgreSQL backend with all features |
-| Disease Detection | ✅ Fully Integrated | Keras .h5 model inference |
-| Type Classification | ✅ Fully Integrated | TFLite model with quality checks |
-| Pests Detection | 🔄 Placeholder | Returns dummy data, ready for model |
-| Growth Prediction | 🔄 Placeholder | Returns dummy data, ready for model |
+- Environmental sensor data collection
+- Real-time environmental monitoring
+- Sensor health checking
+- Historical environmental graph data
+- Mushroom cultivation profile management
+- Optimal environmental range lookup
+- Mushroom variety recommendation
+- Environmental solution recommendation
+- 60-minute environmental forecasting
+- Mushroom disease detection
+- Treatment recommendation
+- Disease severity estimation
+- Bag-level disease history
+- Mushroom type classification
+- Growth-stage prediction
+- Bag-level growth history
 
 ---
 
-## 2. Base URL & Versioning
+## 📌 2. Module Status
+
+| Module | Status | Description |
+|---|---|---|
+| General API | Implemented | Health check and dummy prediction endpoint |
+| Environment Module | Implemented | Sensor readings, status, history, alerts, recommendation, solution advice, forecast |
+| Disease Module | Implemented | Disease prediction, severity, treatment recommendation, bag history |
+| Type Module | Implemented | Mushroom type classification from image |
+| Growth Module | Implemented | Growth-stage prediction and bag-level growth history |
+
+---
+
+## 🔗 3. Base URL
 
 ### Local Development
-```
+
+```text
 http://127.0.0.1:8000
 ```
 
-### Network Access (Same WiFi)
-```
-http://<YOUR_PC_IPV4>:8000
+### Same Wi-Fi Network Access
+
+Use your computer IPv4 address when testing from a mobile phone:
+
+```text
+http://YOUR_PC_IPV4_ADDRESS:8000
 ```
 
-Find your IP address:
-- Windows: `ipconfig`
-- macOS/Linux: `ifconfig` or `ip addr`
+Example:
+
+```text
+http://192.168.1.100:8000
+```
 
 ### API Version Prefix
-All endpoints are prefixed with:
-```
+
+```text
 /api/v1
 ```
 
-### Interactive Documentation
+### Interactive API Documentation
 
-The API provides built-in interactive documentation:
-
-| Tool | URL | Description |
-|------|-----|-------------|
-| Swagger UI | `/docs` | Interactive API testing interface |
-| ReDoc | `/redoc` | Clean, readable API documentation |
-| OpenAPI JSON | `/openapi.json` | Machine-readable API specification |
+| Tool | URL |
+|---|---|
+| Swagger UI | `http://127.0.0.1:8000/docs` |
+| ReDoc | `http://127.0.0.1:8000/redoc` |
+| OpenAPI JSON | `http://127.0.0.1:8000/openapi.json` |
 
 ---
 
-## 3. Authentication & Security
+## 🔐 4. Authentication and Security
 
-### Current Implementation (Development)
-- **Authentication**: None (open access)
-- **CORS**: Enabled for all origins (`*`)
-- **HTTPS**: Not required (HTTP only)
+### Current Development Setup
+
+| Security Area | Current Status |
+|---|---|
+| Authentication | Not implemented |
+| CORS | Allows all origins |
+| HTTPS | Not required for local development |
+| API Access | Open during development |
 
 ### Production Recommendations
-- Implement JWT or API key authentication
-- Restrict CORS to specific domains
-- Enable HTTPS/TLS encryption
-- Add rate limiting per user/IP
-- Implement request validation and sanitization
+
+Before production deployment:
+
+- Add JWT or API key authentication
+- Restrict CORS to trusted domains
+- Use HTTPS/TLS
+- Protect environment variables
+- Add request logging
+- Add rate limiting
+- Validate and sanitize all inputs
 
 ---
 
-## 4. Response Codes
-
-### Success Codes
+## ✅ 5. Response Codes
 
 | Code | Meaning | Usage |
-|------|---------|-------|
-| `200` | OK | Successful GET, PUT, or POST with data return |
-| `201` | Created | Successful POST creating new resource |
-| `204` | No Content | Successful DELETE or PUT with no return data |
-
-### Client Error Codes
-
-| Code | Meaning | Common Causes |
-|------|---------|---------------|
-| `400` | Bad Request | Invalid input data, missing required fields |
-| `404` | Not Found | Resource doesn't exist, invalid endpoint |
-| `415` | Unsupported Media Type | Wrong Content-Type header for file upload |
-| `422` | Validation Error | Pydantic schema validation failure |
-
-### Server Error Codes
-
-| Code | Meaning | Common Causes |
-|------|---------|---------------|
-| `500` | Internal Server Error | Database error, model loading failure, unexpected exception |
+|---|---|---|
+| `200` | OK | Successful request |
+| `400` | Bad Request | Invalid input or missing required value |
+| `404` | Not Found | Requested resource or optimal range not found |
+| `415` | Unsupported Media Type | Unsupported uploaded file type |
+| `422` | Validation Error | Request body validation failed |
+| `500` | Internal Server Error | Server, database, or model inference error |
 
 ---
 
-## 5. Endpoints Summary
+## 🧭 6. Endpoints Summary
 
 ### General Endpoints
 
 | Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/ping` | Health check and API availability |
-| POST | `/predict` | Demo prediction endpoint (testing) |
+|---|---|---|
+| GET | `/ping` | Backend health check |
+| POST | `/predict` | Dummy test prediction endpoint |
 
-### Environment Module (`/api/v1/environment`)
+### Environment Endpoints
+
+Base path:
+
+```text
+/api/v1/environment
+```
 
 | Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/readings` | Insert new sensor reading |
-| GET | `/status` | Get current status (reading + profile + alerts) |
-| GET | `/health` | Check sensor node online/offline status |
+|---|---|---|
+| POST | `/readings` | Save a new sensor reading |
+| GET | `/status` | Get latest reading, profile, optimal range, and alerts |
+| GET | `/health` | Check sensor online/offline status |
 | GET | `/options` | Get available mushroom types and stages |
 | GET | `/profile` | Get current cultivation profile |
 | PUT | `/profile` | Update cultivation profile |
-| GET | `/optimal-range` | Get optimal ranges for type and stage |
-| GET | `/history` | Get historical data (bucketed) |
-| GET | `/available-dates` | Get dates with readings |
-| GET | `/recommendation` | Get variety recommendations |
+| GET | `/optimal-range` | Get optimal range for mushroom type and stage |
+| GET | `/history` | Get environmental history data |
+| GET | `/available-dates` | Get dates that contain readings |
+| GET | `/recommendation` | Get mushroom variety recommendation |
+| GET | `/solution-recommendation` | Get corrective environmental recommendation |
+| GET | `/forecast-60m` | Get 60-minute environmental forecast |
 
-### AI Modules
+### Disease Endpoints
 
-| Method | Endpoint | Module | Description |
-|--------|----------|--------|-------------|
-| POST | `/api/v1/disease/predict` | Disease | Detect disease from image |
-| POST | `/api/v1/type/predict` | Type | Classify mushroom variety from image |
-| POST | `/api/v1/pests/predict` | Pests | Detect pests (placeholder) |
-| POST | `/api/v1/growth/predict` | Growth | Predict growth stage (placeholder) |
+Base path:
+
+```text
+/api/v1/disease
+```
+
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/predict` | Predict disease, severity, and treatment recommendation |
+| GET | `/history/{bag_id}` | Get disease history for a bag |
+
+### Type Endpoints
+
+Base path:
+
+```text
+/api/v1/type
+```
+
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/predict` | Predict mushroom type from image |
+
+### Growth Endpoints
+
+Base path:
+
+```text
+/api/v1/growth
+```
+
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/predict-growth-stage` | Predict growth stage from image |
+| GET | `/history/{bag_id}` | Get growth history for a bag |
 
 ---
 
-## 6. General Endpoints
+# 🌐 7. General Endpoints
 
-### 6.1 Health Check
+## 7.1 Health Check
 
-**Endpoint**: `GET /ping`
+**Endpoint**
 
-**Description**: Simple health check to verify API is running.
+```text
+GET /ping
+```
 
-**Response**:
+**Description**
+
+Checks whether the backend server is running.
+
+**Response**
+
 ```json
 {
   "message": "Backend is working!"
 }
 ```
 
-**cURL Example**:
+**cURL**
+
 ```bash
 curl http://127.0.0.1:8000/ping
 ```
 
 ---
 
-### 6.2 Demo Prediction
+## 7.2 Dummy Prediction
 
-**Endpoint**: `POST /predict`
+**Endpoint**
 
-**Description**: Testing endpoint that doubles input value.
+```text
+POST /predict
+```
 
-**Request Body**:
+**Description**
+
+Simple test endpoint that doubles the input value.
+
+**Request Body**
+
 ```json
 {
   "value": 5.0
 }
 ```
 
-**Response**:
+**Response**
+
 ```json
 {
   "input": 5.0,
@@ -205,7 +249,8 @@ curl http://127.0.0.1:8000/ping
 }
 ```
 
-**cURL Example**:
+**cURL**
+
 ```bash
 curl -X POST http://127.0.0.1:8000/predict \
   -H "Content-Type: application/json" \
@@ -214,115 +259,110 @@ curl -X POST http://127.0.0.1:8000/predict \
 
 ---
 
-## 7. Environment Module
+# 🌱 8. Environment Module
 
-### Overview
+Base path:
 
-The environment module manages all aspects of environmental monitoring including:
-- Sensor data ingestion from IoT nodes
-- Real-time status and alerts
-- Historical trend analysis
-- Variety recommendations
-- Profile management
+```text
+/api/v1/environment
+```
 
-**Important Notes**:
-- CO₂ values are stored and displayed but not used in alerts or recommendations
-- All decisions use temperature and humidity only
-- Date-based queries use Asia/Colombo timezone
-- Alerts use consecutive-reading logic to prevent false alarms
+The environment module manages sensor readings, environmental status, cultivation profile, optimal ranges, historical graph data, variety recommendation, solution recommendation, and forecasting.
 
 ---
 
-### 7.1 Insert Reading
+## 8.1 Save Environment Reading
 
-**Endpoint**: `POST /api/v1/environment/readings`
+**Endpoint**
 
-**Description**: Insert a new sensor reading (from ESP32 or simulator).
+```text
+POST /api/v1/environment/readings
+```
 
-**Request Body**:
+**Description**
+
+Stores a new temperature, humidity, and optional CO₂ reading.
+
+**Request Body**
+
 ```json
 {
   "temperature": 25.0,
-  "humidity": 95.0,
-  "co2": 900.0,
+  "humidity": 90.0,
+  "co2": 850.0,
   "node_id": "esp32-01",
-  "sampled_at": "2026-01-10T12:00:00Z"
+  "sampled_at": "2026-05-02T10:30:00Z"
 }
 ```
 
-**Parameters**:
+**Request Fields**
 
 | Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `temperature` | float | ✅ | Temperature in °C |
-| `humidity` | float | ✅ | Relative humidity in %RH |
-| `co2` | float | ❌ | Estimated CO₂ in ppm |
-| `node_id` | string | ❌ | Sensor node identifier |
-| `sampled_at` | string (ISO 8601) | ❌ | Reading timestamp (defaults to current UTC) |
+|---|---|---|---|
+| `temperature` | float | Yes | Temperature in Celsius |
+| `humidity` | float | Yes | Relative humidity percentage |
+| `co2` | float/null | No | Estimated CO₂ value |
+| `node_id` | string/null | No | Sensor node ID |
+| `sampled_at` | datetime/null | No | Optional timestamp |
 
-**Response** (200):
+**Response**
+
 ```json
 {
-  "id": 1374,
-  "sampled_at": "2026-01-10T12:00:00Z",
+  "id": 1,
+  "sampled_at": "2026-05-02T10:30:00Z",
   "temperature": 25.0,
-  "humidity": 95.0,
-  "co2_estimated": 900.0,
+  "humidity": 90.0,
+  "co2_estimated": 850.0,
   "node_id": "esp32-01",
   "note": null
 }
 ```
 
-**cURL Example**:
+**cURL**
+
 ```bash
 curl -X POST http://127.0.0.1:8000/api/v1/environment/readings \
   -H "Content-Type: application/json" \
   -d '{
     "temperature": 25.0,
-    "humidity": 95.0,
-    "co2": 900.0,
+    "humidity": 90.0,
+    "co2": 850.0,
     "node_id": "esp32-01"
   }'
 ```
 
-**ESP32 Integration Example**:
-```cpp
-// Arduino/ESP32 code snippet
-String jsonPayload = "{\"temperature\":" + String(temp) + 
-                     ",\"humidity\":" + String(hum) + 
-                     ",\"co2\":" + String(co2) + 
-                     ",\"node_id\":\"esp32-01\"}";
-
-HTTPClient http;
-http.begin("http://YOUR_SERVER:8000/api/v1/environment/readings");
-http.addHeader("Content-Type", "application/json");
-int httpCode = http.POST(jsonPayload);
-```
-
 ---
 
-### 7.2 Get Current Status
+## 8.2 Get Environment Status
 
-**Endpoint**: `GET /api/v1/environment/status`
+**Endpoint**
 
-**Description**: Get comprehensive current status including latest reading, profile, optimal range, and active alerts.
+```text
+GET /api/v1/environment/status
+```
 
-**Response** (200):
+**Description**
+
+Returns latest reading, selected profile, optimal range, and alert states.
+
+**Response**
+
 ```json
 {
   "reading": {
-    "id": 1374,
-    "sampled_at": "2026-01-10T12:00:00Z",
+    "id": 1,
+    "sampled_at": "2026-05-02T10:30:00Z",
     "temperature": 25.0,
-    "humidity": 95.0,
-    "co2_estimated": 900.0,
+    "humidity": 90.0,
+    "co2_estimated": 850.0,
     "node_id": "esp32-01",
     "note": null
   },
   "profile": {
     "mushroom_type": "Oyster Mushroom",
     "stage": "fruiting",
-    "updated_at": "2026-01-10T11:55:00Z"
+    "updated_at": "2026-05-02T10:25:00Z"
   },
   "optimal_range": {
     "temp_min": 19.0,
@@ -336,98 +376,72 @@ int httpCode = http.POST(jsonPayload);
   "alerts": [
     {
       "param": "temperature",
-      "active": false,
-      "bad_count": 0,
-      "good_count": 2,
-      "state_changed_at": "2026-01-10T11:40:00Z",
-      "last_value": 20.0,
-      "last_message": "Temperature back to normal. Current 20.0, optimal 19-20."
-    },
-    {
-      "param": "humidity",
       "active": true,
       "bad_count": 6,
       "good_count": 0,
-      "state_changed_at": "2026-01-10T12:00:00Z",
-      "last_value": 95.0,
-      "last_message": "Humidity too high! Current 95.0, optimal 85-92."
+      "state_changed_at": "2026-05-02T10:30:00Z",
+      "last_value": 25.0,
+      "last_message": "Temperature out of range. Current 25.0, optimal 19.0-20.0."
     }
   ]
 }
 ```
 
-**Alert Logic**:
-- **Activation**: Alert becomes active after 6 consecutive out-of-range readings
-- **Deactivation**: Alert becomes inactive after 2 consecutive in-range readings
-- **Purpose**: Prevents false alarms from brief sensor fluctuations
+**cURL**
 
-**cURL Example**:
 ```bash
 curl http://127.0.0.1:8000/api/v1/environment/status
 ```
 
 ---
 
-### 7.3 Get Sensor Health
+## 8.3 Get Sensor Health
 
-**Endpoint**: `GET /api/v1/environment/health`
+**Endpoint**
 
-**Description**: Check if sensor node is online based on last reading timestamp.
+```text
+GET /api/v1/environment/health
+```
 
-**Query Parameters**:
+**Query Parameters**
 
 | Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `offline_after_seconds` | integer | 60 | Seconds after which node is considered offline |
+|---|---|---|---|
+| `offline_after_seconds` | integer | 60 | Time limit used to mark sensor as offline |
 
-**Response** (200) - Online:
+**Response**
+
 ```json
 {
   "online": true,
-  "last_seen": "2026-01-10T12:00:00Z",
+  "last_seen": "2026-05-02T10:30:00Z",
   "node_id": "esp32-01",
   "seconds_since_last": 12
 }
 ```
 
-**Response** (200) - Offline:
-```json
-{
-  "online": false,
-  "last_seen": "2026-01-10T11:30:00Z",
-  "node_id": "esp32-01",
-  "seconds_since_last": 1812
-}
-```
+**cURL**
 
-**Response** (200) - No Data:
-```json
-{
-  "online": false,
-  "last_seen": null,
-  "node_id": null,
-  "seconds_since_last": null
-}
-```
-
-**cURL Examples**:
 ```bash
-# Default 60-second threshold
-curl http://127.0.0.1:8000/api/v1/environment/health
-
-# Custom 300-second threshold
-curl "http://127.0.0.1:8000/api/v1/environment/health?offline_after_seconds=300"
+curl "http://127.0.0.1:8000/api/v1/environment/health?offline_after_seconds=60"
 ```
 
 ---
 
-### 7.4 Get Available Options
+## 8.4 Get Environment Options
 
-**Endpoint**: `GET /api/v1/environment/options`
+**Endpoint**
 
-**Description**: Get available mushroom types and cultivation stages (from database seed data).
+```text
+GET /api/v1/environment/options
+```
 
-**Response** (200):
+**Description**
+
+Returns available mushroom types and cultivation stages.
+
+**Response**
+
 ```json
 {
   "mushrooms": [
@@ -450,53 +464,54 @@ curl "http://127.0.0.1:8000/api/v1/environment/health?offline_after_seconds=300"
 }
 ```
 
-**Usage**: Populate dropdown menus in mobile app for profile selection.
+**cURL**
 
-**cURL Example**:
 ```bash
 curl http://127.0.0.1:8000/api/v1/environment/options
 ```
 
 ---
 
-### 7.5 Get Current Profile
+## 8.5 Get Current Profile
 
-**Endpoint**: `GET /api/v1/environment/profile`
+**Endpoint**
 
-**Description**: Get currently selected mushroom type and cultivation stage.
+```text
+GET /api/v1/environment/profile
+```
 
-**Response** (200) - Profile Set:
+**Response**
+
 ```json
 {
   "mushroom_type": "Oyster Mushroom",
   "stage": "fruiting",
-  "updated_at": "2026-01-10T11:55:00Z"
+  "updated_at": "2026-05-02T10:25:00Z"
 }
 ```
 
-**Response** (200) - Profile Not Set:
-```json
-{
-  "mushroom_type": null,
-  "stage": null,
-  "updated_at": "2026-01-10T11:20:00Z"
-}
-```
+**cURL**
 
-**cURL Example**:
 ```bash
 curl http://127.0.0.1:8000/api/v1/environment/profile
 ```
 
 ---
 
-### 7.6 Update Profile
+## 8.6 Update Profile
 
-**Endpoint**: `PUT /api/v1/environment/profile`
+**Endpoint**
 
-**Description**: Update cultivation profile (mushroom type and stage). **Resets all alert counters and states.**
+```text
+PUT /api/v1/environment/profile
+```
 
-**Request Body**:
+**Description**
+
+Updates selected mushroom type and stage. Alert counters are reset after profile update.
+
+**Request Body**
+
 ```json
 {
   "mushroom_type": "Oyster Mushroom",
@@ -504,36 +519,18 @@ curl http://127.0.0.1:8000/api/v1/environment/profile
 }
 ```
 
-**Parameters**:
+**Response**
 
-| Field | Type | Required | Values |
-|-------|------|----------|--------|
-| `mushroom_type` | string | ✅ | See `/options` endpoint |
-| `stage` | string | ✅ | `spawn_run` or `fruiting` |
-
-**Response** (200):
 ```json
 {
   "mushroom_type": "Oyster Mushroom",
   "stage": "fruiting",
-  "updated_at": "2026-01-10T12:05:00Z"
+  "updated_at": "2026-05-02T10:25:00Z"
 }
 ```
 
-**Error Response** (400) - Invalid Combination:
-```json
-{
-  "detail": "No optimal range found for mushroom_type='Unknown Mushroom' and stage='fruiting'"
-}
-```
+**cURL**
 
-**Side Effects**:
-- Resets temperature alert counters to 0
-- Resets humidity alert counters to 0
-- Clears alert active states
-- Updates optimal range reference
-
-**cURL Example**:
 ```bash
 curl -X PUT http://127.0.0.1:8000/api/v1/environment/profile \
   -H "Content-Type: application/json" \
@@ -545,20 +542,23 @@ curl -X PUT http://127.0.0.1:8000/api/v1/environment/profile \
 
 ---
 
-### 7.7 Get Optimal Range
+## 8.7 Get Optimal Range
 
-**Endpoint**: `GET /api/v1/environment/optimal-range`
+**Endpoint**
 
-**Description**: Get optimal environmental ranges for a specific mushroom type and cultivation stage.
+```text
+GET /api/v1/environment/optimal-range
+```
 
-**Query Parameters**:
+**Query Parameters**
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `mushroom_type` | string | ✅ | Mushroom variety name |
-| `stage` | string | ✅ | `spawn_run` or `fruiting` |
+| Parameter | Type | Required |
+|---|---|---|
+| `mushroom_type` | string | Yes |
+| `stage` | string | Yes |
 
-**Response** (200):
+**Response**
+
 ```json
 {
   "temp_min": 19.0,
@@ -571,70 +571,44 @@ curl -X PUT http://127.0.0.1:8000/api/v1/environment/profile \
 }
 ```
 
-**Error Response** (404):
-```json
-{
-  "detail": "No optimal range found for mushroom_type='Invalid Type' and stage='fruiting'"
-}
-```
+**cURL**
 
-**cURL Example**:
 ```bash
 curl "http://127.0.0.1:8000/api/v1/environment/optimal-range?mushroom_type=Oyster%20Mushroom&stage=fruiting"
 ```
 
-**Pre-seeded Ranges** (examples):
-
-| Mushroom Type | Stage | Temp (°C) | Humidity (%RH) |
-|---------------|-------|-----------|----------------|
-| Oyster Mushroom | fruiting | 19-20 | 85-92 |
-| Oyster Mushroom | spawn_run | 20-25 | 85-95 |
-| Button Mushroom | fruiting | 15-18 | 80-90 |
-| Paddy Straw | fruiting | 28-35 | 80-85 |
-
 ---
 
-### 7.8 Get Historical Data
+## 8.8 Get Environment History
 
-**Endpoint**: `GET /api/v1/environment/history`
+**Endpoint**
 
-**Description**: Get time-bucketed historical readings for chart visualization.
+```text
+GET /api/v1/environment/history
+```
 
-**Query Parameters**:
+**Query Parameters**
 
 | Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `range` | string | ✅ | `last_1h`, `last_day`, or `date` |
-| `date` | string (YYYY-MM-DD) | ⚠️ | Required when `range=date` |
+|---|---|---|---|
+| `range` | string | Yes | `last_1h`, `last_day`, or `date` |
+| `date` | string | Required for `range=date` | Format: `YYYY-MM-DD` |
 
-**Range Options**:
+**Response**
 
-| Range | Buckets | Interval | Window |
-|-------|---------|----------|--------|
-| `last_1h` | 12 | 5 minutes | Last 60 minutes |
-| `last_day` | 24 | 1 hour | Last 24 hours |
-| `date` | 24 | 1 hour | Specific date (Asia/Colombo timezone) |
-
-**Response** (200):
 ```json
 {
   "range": "last_1h",
   "bucket_seconds": 300,
   "points": [
     {
-      "ts": "2026-01-10T11:00:00Z",
+      "ts": "2026-05-02T10:00:00Z",
       "temperature": 25.2,
       "humidity": 91.0,
-      "co2": 880.0
+      "co2": 850.0
     },
     {
-      "ts": "2026-01-10T11:05:00Z",
-      "temperature": 25.0,
-      "humidity": 90.4,
-      "co2": 900.0
-    },
-    {
-      "ts": "2026-01-10T11:10:00Z",
+      "ts": "2026-05-02T10:05:00Z",
       "temperature": null,
       "humidity": null,
       "co2": null
@@ -643,77 +617,70 @@ curl "http://127.0.0.1:8000/api/v1/environment/optimal-range?mushroom_type=Oyste
 }
 ```
 
-**Notes**:
-- Missing data buckets return `null` values but timestamps are always present
-- Values are averages within each bucket
-- For `date` range, buckets align to midnight-to-midnight in Asia/Colombo timezone
+**Range Options**
 
-**Suggested Chart Axes** (for consistent comparison):
-- Temperature: 0–45°C
-- Humidity: 0–100%
-- CO₂: 0–5000 ppm
+| Range | Buckets | Bucket Size |
+|---|---:|---|
+| `last_1h` | 12 | 5 minutes |
+| `last_day` | 24 | 1 hour |
+| `date` | 24 | 1 hour |
 
-**cURL Examples**:
+**cURL**
+
 ```bash
-# Last hour
 curl "http://127.0.0.1:8000/api/v1/environment/history?range=last_1h"
+```
 
-# Last 24 hours
-curl "http://127.0.0.1:8000/api/v1/environment/history?range=last_day"
-
-# Specific date
-curl "http://127.0.0.1:8000/api/v1/environment/history?range=date&date=2026-01-10"
+```bash
+curl "http://127.0.0.1:8000/api/v1/environment/history?range=date&date=2026-05-02"
 ```
 
 ---
 
-### 7.9 Get Available Dates
+## 8.9 Get Available Dates
 
-**Endpoint**: `GET /api/v1/environment/available-dates`
+**Endpoint**
 
-**Description**: Get list of dates that have readings (aligned to Asia/Colombo timezone days).
+```text
+GET /api/v1/environment/available-dates
+```
 
-**Response** (200):
+**Response**
+
 ```json
 {
   "dates": [
-    "2026-01-08",
-    "2026-01-09",
-    "2026-01-10"
+    "2026-05-01",
+    "2026-05-02"
   ]
 }
 ```
 
-**Usage**: Populate date picker in mobile app for historical date selection.
+**cURL**
 
-**cURL Example**:
 ```bash
 curl http://127.0.0.1:8000/api/v1/environment/available-dates
 ```
 
 ---
 
-### 7.10 Get Variety Recommendations
+## 8.10 Get Variety Recommendation
 
-**Endpoint**: `GET /api/v1/environment/recommendation`
+**Endpoint**
 
-**Description**: Get ranked mushroom variety recommendations based on environmental conditions.
+```text
+GET /api/v1/environment/recommendation
+```
 
-**Query Parameters**:
+**Query Parameters**
 
 | Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `source` | string | ❌ | `current` | Data source: `current`, `last_1h`, `last_day`, `date` |
-| `date` | string (YYYY-MM-DD) | ⚠️ | - | Required when `source=date` |
+|---|---|---|---|---|
+| `source` | string | No | `current` | `current`, `last_1h`, `last_day`, or `date` |
+| `date` | string | Required for `source=date` | - | Format: `YYYY-MM-DD` |
 
-**Recommendation Algorithm**:
-1. Average temperature and humidity from source window
-2. Compare against fruiting phase ranges for all mushroom types
-3. Calculate penalty score (distance from optimal range)
-4. Rank varieties by lowest penalty (best match)
-5. Generate explainable reason for each recommendation
+**Response**
 
-**Response** (200) - With Data:
 ```json
 {
   "source": "current",
@@ -723,154 +690,289 @@ curl http://127.0.0.1:8000/api/v1/environment/available-dates
   "points_used": 1,
   "recommendations": [
     {
-      "mushroom_type": "Abalone Mushroom",
-      "score": 0.5,
-      "reason": "Temp within range, RH off by 1.0%"
-    },
-    {
       "mushroom_type": "Oyster Mushroom",
       "score": 5.0,
       "reason": "Temp off by 5.0°C, RH within range"
-    },
-    {
-      "mushroom_type": "Paddy Straw Mushroom",
-      "score": 3.0,
-      "reason": "Temp off by 3.0°C, RH off by 5.0%"
     }
   ]
 }
 ```
 
-**Response** (200) - No Data:
-```json
-{
-  "source": "last_day",
-  "used_stage": "fruiting",
-  "temperature": null,
-  "humidity": null,
-  "points_used": 0,
-  "recommendations": []
-}
-```
+**cURL**
 
-**Scoring Details**:
-- Lower score = better match
-- Score 0 = perfect match (both temp and humidity in range)
-- Temperature penalty: degrees outside range
-- Humidity penalty: percentage points outside range
-
-**cURL Examples**:
 ```bash
-# Current reading
 curl "http://127.0.0.1:8000/api/v1/environment/recommendation?source=current"
-
-# Last hour average
-curl "http://127.0.0.1:8000/api/v1/environment/recommendation?source=last_1h"
-
-# Last day average
-curl "http://127.0.0.1:8000/api/v1/environment/recommendation?source=last_day"
-
-# Specific date average
-curl "http://127.0.0.1:8000/api/v1/environment/recommendation?source=date&date=2026-01-10"
 ```
 
 ---
 
-## 8. Disease Module
+## 8.11 Get Solution Recommendation
 
-### 8.1 Predict Disease from Image
+**Endpoint**
 
-**Endpoint**: `POST /api/v1/disease/predict`
+```text
+GET /api/v1/environment/solution-recommendation
+```
 
-**Description**: Analyze mushroom image for disease detection using Keras deep learning model.
+**Description**
 
-**Request**:
-- **Content-Type**: `multipart/form-data`
-- **Form Field**: `file` (JPEG or PNG image)
+Returns corrective actions for the current environmental issue.
 
-**Supported Classifications**:
-- `healthy` - No disease detected
-- `black_mold` - Black mold contamination
-- `green_mold` - Green mold/trichoderma contamination
-- `invalid_image` - Low confidence (not a mushroom or unclear image)
+**Query Parameters**
 
-**Response** (200):
+| Parameter | Type | Required | Default | Description |
+|---|---|---|---|---|
+| `lang` | string | No | `en` | `en` or `si` |
+
+**Response**
+
+```json
+{
+  "language": "en",
+  "mushroom_type": "Oyster Mushroom",
+  "stage": "fruiting",
+  "issue_code": "TEMP_HIGH",
+  "metric": "temperature",
+  "current_value": 25.0,
+  "optimal_min": 19.0,
+  "optimal_max": 20.0,
+  "title": "Temperature is too high",
+  "immediate": [
+    "Increase ventilation",
+    "Reduce heat sources near the growing area"
+  ],
+  "short_term": [
+    "Monitor temperature again after 15-30 minutes"
+  ],
+  "long_term": [
+    "Improve insulation or airflow control"
+  ],
+  "safety": [
+    "Avoid sudden extreme cooling"
+  ],
+  "llm_message": "Temperature is too high. Increase ventilation and monitor the room again.",
+  "used_llm": true,
+  "note": null
+}
+```
+
+**cURL**
+
+```bash
+curl "http://127.0.0.1:8000/api/v1/environment/solution-recommendation?lang=en"
+```
+
+---
+
+## 8.12 Get 60-Minute Forecast
+
+**Endpoint**
+
+```text
+GET /api/v1/environment/forecast-60m
+```
+
+**Description**
+
+Returns a 60-minute temperature and humidity forecast.
+
+**Response**
+
+```json
+{
+  "horizon_minutes": 60,
+  "generated_at": "2026-05-02T10:30:00Z",
+  "mushroom_type": "Oyster Mushroom",
+  "stage": "fruiting",
+  "current_temperature": 25.0,
+  "current_humidity": 90.0,
+  "predicted_temperature": 24.6,
+  "predicted_humidity": 88.5,
+  "optimal_temp_min": 19.0,
+  "optimal_temp_max": 20.0,
+  "optimal_rh_min": 85.0,
+  "optimal_rh_max": 92.0,
+  "temp_status": "high",
+  "rh_status": "within",
+  "warning": true,
+  "warning_message": "Predicted temperature is outside the optimal range.",
+  "outdoor": {
+    "temperature": 30.0,
+    "humidity": 78.0,
+    "rainfall": 0.0
+  },
+  "model_temp_mae": 0.3714,
+  "model_rh_mae": 3.4008
+}
+```
+
+**cURL**
+
+```bash
+curl http://127.0.0.1:8000/api/v1/environment/forecast-60m
+```
+
+---
+
+# 🩺 9. Disease Module
+
+Base path:
+
+```text
+/api/v1/disease
+```
+
+The disease module predicts mushroom disease condition from an uploaded image, estimates severity, generates treatment advice, and stores disease history by bag ID.
+
+---
+
+## 9.1 Predict Disease
+
+**Endpoint**
+
+```text
+POST /api/v1/disease/predict
+```
+
+**Request Type**
+
+```text
+multipart/form-data
+```
+
+**Form Fields**
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `file` | file | Yes | Mushroom disease image |
+| `bag_id` | string | No | Bag ID. Default: `default_bag` |
+
+**Supported File Types**
+
+```text
+image/jpeg
+image/png
+image/jpg
+```
+
+**Response**
+
 ```json
 {
   "label": "green_mold",
-  "confidence": 0.92
+  "confidence": 0.92,
+  "severity": "moderate",
+  "treatment": "Isolate the affected bag, improve ventilation, reduce excess moisture, and monitor nearby bags."
 }
 ```
 
-**Confidence Threshold**:
-- Predictions below backend threshold return `invalid_image` label
-- Typical threshold: 0.7 (70%)
+**Supported Labels**
 
-**Image Requirements**:
-- Format: JPEG or PNG
-- Recommended size: 224x224 pixels or larger
-- Clear, well-lit mushroom image
-- Avoid blurry or occluded images
+| Label | Description |
+|---|---|
+| `healthy` | Healthy mushroom bag |
+| `black_mold` | Black mold detected |
+| `green_mold` | Green mold detected |
+| `invalid_image` | Invalid or unclear image |
 
-**cURL Example**:
+**Severity Levels**
+
+| Severity | Score Meaning |
+|---|---|
+| `none` | No disease |
+| `mild` | Low severity |
+| `moderate` | Medium severity |
+| `severe` | High severity |
+
+**cURL**
+
 ```bash
 curl -X POST http://127.0.0.1:8000/api/v1/disease/predict \
-  -H "accept: application/json" \
-  -F "file=@mushroom_sample.jpg"
-```
-
-**Python Example**:
-```python
-import requests
-
-url = "http://127.0.0.1:8000/api/v1/disease/predict"
-files = {"file": open("mushroom_image.jpg", "rb")}
-response = requests.post(url, files=files)
-print(response.json())
-```
-
-**Mobile App Example** (React Native):
-```javascript
-const formData = new FormData();
-formData.append('file', {
-  uri: imageUri,
-  type: 'image/jpeg',
-  name: 'mushroom.jpg'
-});
-
-const response = await fetch(`${BACKEND_URL}/api/v1/disease/predict`, {
-  method: 'POST',
-  body: formData,
-  headers: {
-    'Content-Type': 'multipart/form-data',
-  }
-});
-
-const result = await response.json();
+  -F "file=@mushroom_disease.jpg" \
+  -F "bag_id=bag_001"
 ```
 
 ---
 
-## 9. Type Module
+## 9.2 Get Disease History
 
-### 9.1 Predict Mushroom Type from Image
+**Endpoint**
 
-**Endpoint**: `POST /api/v1/type/predict`
+```text
+GET /api/v1/disease/history/{bag_id}
+```
 
-**Description**: Classify mushroom variety from image using TFLite MobileNetV2 model.
+**Path Parameters**
 
-**Request**:
-- **Content-Type**: `multipart/form-data`
-- **Form Field**: `file` (JPEG, PNG, or WEBP image)
+| Parameter | Type | Required |
+|---|---|---|
+| `bag_id` | string | Yes |
 
-**Supported Classifications**:
-- Abalone Mushroom
-- Button Mushroom
-- Milky Mushroom
-- Oyster Mushroom
-- Paddy Straw Mushroom
+**Response**
 
-**Response** (200) - Confident Prediction:
+```json
+[
+  {
+    "bag_id": "bag_001",
+    "label": "green_mold",
+    "severity": "moderate",
+    "severity_score": 2,
+    "confidence": 0.92,
+    "timestamp": "2026-05-02T10:30:00Z"
+  }
+]
+```
+
+**cURL**
+
+```bash
+curl http://127.0.0.1:8000/api/v1/disease/history/bag_001
+```
+
+---
+
+# 🍄 10. Mushroom Type Module
+
+Base path:
+
+```text
+/api/v1/type
+```
+
+The type module classifies mushroom variety from an uploaded image.
+
+---
+
+## 10.1 Predict Mushroom Type
+
+**Endpoint**
+
+```text
+POST /api/v1/type/predict
+```
+
+**Request Type**
+
+```text
+multipart/form-data
+```
+
+**Form Fields**
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `file` | file | Yes | Mushroom image |
+
+**Supported File Types**
+
+```text
+image/jpeg
+image/png
+image/webp
+```
+
+**Response – Confident Prediction**
+
 ```json
 {
   "ok": true,
@@ -882,411 +984,327 @@ const result = await response.json();
       "confidence": 0.96
     },
     {
-      "label": "Abalone Mushroom",
-      "confidence": 0.02
-    },
-    {
-      "label": "Milky Mushroom",
-      "confidence": 0.01
+      "label": "Button Mushroom",
+      "confidence": 0.03
     }
   ],
   "message": null
 }
 ```
 
-**Response** (200) - Low Confidence / Unknown:
+**Response – Low Confidence**
+
 ```json
 {
   "ok": false,
   "label": "unknown",
-  "confidence": 0.62,
+  "confidence": 0.48,
   "top_k": [],
   "message": "Not confident (maybe not a mushroom). Please upload a clear mushroom image."
 }
 ```
 
-**Quality Checks**:
-- Confidence threshold (typically 0.7)
-- Image clarity validation
-- Mushroom presence verification
+**cURL**
 
-**Image Preprocessing**:
-- Resized to 224x224 pixels
-- Normalized to [-1, 1] range (MobileNetV2 standard)
-- RGB color space
-
-**cURL Example**:
 ```bash
 curl -X POST http://127.0.0.1:8000/api/v1/type/predict \
-  -H "accept: application/json" \
-  -F "file=@mushroom_type_sample.jpg"
-```
-
-**Python Example**:
-```python
-import requests
-
-url = "http://127.0.0.1:8000/api/v1/type/predict"
-files = {"file": open("mushroom.jpg", "rb")}
-response = requests.post(url, files=files)
-result = response.json()
-
-if result["ok"]:
-    print(f"Detected: {result['label']} ({result['confidence']:.2%})")
-else:
-    print(f"Unknown: {result['message']}")
+  -F "file=@mushroom_type.jpg"
 ```
 
 ---
 
-## 10. Pests Module
+# 📈 11. Growth Module
 
-**Status**: 🔄 Placeholder (ready for model integration)
+Base path:
 
-### 10.1 Predict Pest
+```text
+/api/v1/growth
+```
 
-**Endpoint**: `POST /api/v1/pests/predict`
+The growth module predicts mushroom growth stage from an uploaded image and stores bag-level growth history.
 
-**Description**: Placeholder endpoint for pest detection. Returns dummy data.
+---
 
-**Request Body**:
+## 11.1 Predict Growth Stage
+
+**Endpoint**
+
+```text
+POST /api/v1/growth/predict-growth-stage
+```
+
+**Request Type**
+
+```text
+multipart/form-data
+```
+
+**Form Fields**
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `image` | file | Yes | Mushroom growth image |
+| `bag_id` | string | Yes | Bag identifier |
+
+**Response**
+
 ```json
 {
-  "sample_id": "sample-1"
+  "growth_stage": "fruitbody_development",
+  "confidence": 0.9142,
+  "next_stage": "harvest_readiness",
+  "estimated_days_to_next_stage": 2,
+  "warning": null,
+  "bag_id": "bag_001"
 }
 ```
 
-**Response** (200):
-```json
-{
-  "pest_name": "Dummy Mite",
-  "confidence": 0.85,
-  "advice": "Increase ventilation and inspect the growing room for visible mites."
-}
-```
+**cURL**
 
-**Future Implementation**:
-- Accept image upload (multipart/form-data)
-- Return actual pest classifications
-- Provide treatment recommendations
-
-**cURL Example**:
 ```bash
-curl -X POST http://127.0.0.1:8000/api/v1/pests/predict \
-  -H "Content-Type: application/json" \
-  -d '{"sample_id": "test-1"}'
+curl -X POST http://127.0.0.1:8000/api/v1/growth/predict-growth-stage \
+  -F "image=@growth_stage.jpg" \
+  -F "bag_id=bag_001"
 ```
 
 ---
 
-## 11. Growth Module
+## 11.2 Get Growth History
 
-**Status**: 🔄 Placeholder (ready for model integration)
+**Endpoint**
 
-### 11.1 Predict Growth Stage
-
-**Endpoint**: `POST /api/v1/growth/predict`
-
-**Description**: Placeholder endpoint for growth prediction. Returns dummy data.
-
-**Request Body**:
-```json
-{
-  "sample_id": "sample-1"
-}
+```text
+GET /api/v1/growth/history/{bag_id}
 ```
 
-**Response** (200):
-```json
-{
-  "stage": "pinning",
-  "days_until_harvest": 7,
-  "expected_yield_kg": 3.2
-}
-```
+**Path Parameters**
 
-**Future Implementation**:
-- Accept environmental time series data
-- Accept mushroom images for visual stage detection
-- Return ML-based yield predictions
-- Provide harvest timing recommendations
+| Parameter | Type | Required |
+|---|---|---|
+| `bag_id` | string | Yes |
 
-**cURL Example**:
-```bash
-curl -X POST http://127.0.0.1:8000/api/v1/growth/predict \
-  -H "Content-Type: application/json" \
-  -d '{"sample_id": "test-1"}'
-```
-
----
-
-## 12. Data Models
-
-### Reading Model
-```json
-{
-  "id": 1374,
-  "sampled_at": "2026-01-10T12:00:00Z",
-  "temperature": 25.0,
-  "humidity": 95.0,
-  "co2_estimated": 900.0,
-  "node_id": "esp32-01",
-  "note": null
-}
-```
-
-### Profile Model
-```json
-{
-  "mushroom_type": "Oyster Mushroom",
-  "stage": "fruiting",
-  "updated_at": "2026-01-10T11:55:00Z"
-}
-```
-
-### Alert State Model
-```json
-{
-  "param": "temperature",
-  "active": true,
-  "bad_count": 6,
-  "good_count": 0,
-  "state_changed_at": "2026-01-10T12:00:00Z",
-  "last_value": 28.5,
-  "last_message": "Temperature too high! Current 28.5, optimal 19-20."
-}
-```
-
-### Optimal Range Model
-```json
-{
-  "temp_min": 19.0,
-  "temp_max": 20.0,
-  "rh_min": 85.0,
-  "rh_max": 92.0,
-  "co2_min": 600.0,
-  "co2_max": 600.0,
-  "co2_note": "Estimated only (display)"
-}
-```
-
-### History Point Model
-```json
-{
-  "ts": "2026-01-10T11:00:00Z",
-  "temperature": 25.2,
-  "humidity": 91.0,
-  "co2": 880.0
-}
-```
-
-### Recommendation Model
-```json
-{
-  "mushroom_type": "Oyster Mushroom",
-  "score": 0.5,
-  "reason": "Temp within range, RH off by 1.0%"
-}
-```
-
----
-
-## 13. Error Handling
-
-### Standard Error Response Format
-
-All errors follow this structure:
+**Response**
 
 ```json
 {
-  "detail": "Error message describing what went wrong"
-}
-```
-
-### Common Error Scenarios
-
-**400 Bad Request** - Invalid Profile:
-```json
-{
-  "detail": "No optimal range found for mushroom_type='Invalid Type' and stage='fruiting'"
-}
-```
-
-**404 Not Found** - Missing Range:
-```json
-{
-  "detail": "No optimal range found for mushroom_type='Unknown' and stage='spawn_run'"
-}
-```
-
-**415 Unsupported Media Type** - Wrong File Upload:
-```json
-{
-  "detail": "Content-Type must be multipart/form-data for file upload"
-}
-```
-
-**422 Validation Error** - Pydantic Schema Failure:
-```json
-{
-  "detail": [
+  "bag_id": "bag_001",
+  "history": [
     {
-      "loc": ["body", "temperature"],
-      "msg": "field required",
-      "type": "value_error.missing"
+      "label": "primordia_formation",
+      "confidence": 0.91,
+      "next_stage": "fruitbody_development",
+      "estimated_days_to_next_stage": 2,
+      "warning": null,
+      "timestamp": "2026-05-02T10:30:00Z"
     }
   ]
 }
 ```
 
-**500 Internal Server Error** - Server Exception:
+**cURL**
+
+```bash
+curl http://127.0.0.1:8000/api/v1/growth/history/bag_001
+```
+
+---
+
+# 📦 12. Data Models
+
+## 12.1 Environment Reading
+
 ```json
 {
-  "detail": "Database connection failed"
+  "id": 1,
+  "sampled_at": "2026-05-02T10:30:00Z",
+  "temperature": 25.0,
+  "humidity": 90.0,
+  "co2_estimated": 850.0,
+  "node_id": "esp32-01",
+  "note": null
 }
 ```
 
-### Best Practices for Error Handling
+## 12.2 Environment Profile
 
-**Client-Side**:
+```json
+{
+  "mushroom_type": "Oyster Mushroom",
+  "stage": "fruiting",
+  "updated_at": "2026-05-02T10:25:00Z"
+}
+```
+
+## 12.3 Disease Prediction
+
+```json
+{
+  "label": "green_mold",
+  "confidence": 0.92,
+  "severity": "moderate",
+  "treatment": "Treatment recommendation text"
+}
+```
+
+## 12.4 Type Prediction
+
+```json
+{
+  "ok": true,
+  "label": "Oyster Mushroom",
+  "confidence": 0.96,
+  "top_k": [
+    {
+      "label": "Oyster Mushroom",
+      "confidence": 0.96
+    }
+  ],
+  "message": null
+}
+```
+
+## 12.5 Growth Prediction
+
+```json
+{
+  "growth_stage": "fruitbody_development",
+  "confidence": 0.9142,
+  "next_stage": "harvest_readiness",
+  "estimated_days_to_next_stage": 2,
+  "warning": null,
+  "bag_id": "bag_001"
+}
+```
+
+---
+
+# ⚠️ 13. Error Handling
+
+All API errors follow the FastAPI standard response format.
+
+## 13.1 Standard Error Format
+
+```json
+{
+  "detail": "Error message"
+}
+```
+
+## 13.2 Common Error Examples
+
+### Invalid Environment Profile
+
+```json
+{
+  "detail": "No optimal range for 'Unknown Mushroom' at stage 'fruiting'"
+}
+```
+
+### Unsupported Disease Image Type
+
+```json
+{
+  "detail": "Unsupported file type: image/webp. Please upload a JPG or PNG image."
+}
+```
+
+### Unsupported Type Image Type
+
+```json
+{
+  "detail": "Unsupported file type: application/pdf. Use JPEG/PNG/WEBP."
+}
+```
+
+### Empty Image Upload
+
+```json
+{
+  "detail": "Empty or invalid image."
+}
+```
+
+### Prediction Failure
+
+```json
+{
+  "detail": "Prediction failed: model file not found"
+}
+```
+
+---
+
+# 🛠️ 14. Development Notes
+
+## 14.1 Run Backend
+
+```bash
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
+```
+
+## 14.2 Local API URLs
+
+```text
+Swagger UI: http://127.0.0.1:8000/docs
+ReDoc:      http://127.0.0.1:8000/redoc
+Ping:       http://127.0.0.1:8000/ping
+```
+
+## 14.3 Mobile Testing
+
+When testing with a physical mobile device:
+
+- Do not use `localhost` in the mobile app.
+- Use the computer IPv4 address.
+- Keep mobile phone and backend computer on the same Wi-Fi network.
+- Allow firewall access to port `8000`.
+
+Example:
+
 ```javascript
-try {
-  const response = await fetch(`${API_URL}/environment/status`);
-  
-  if (!response.ok) {
-    const error = await response.json();
-    console.error(`Error ${response.status}:`, error.detail);
-    // Show user-friendly message
-    return;
-  }
-  
-  const data = await response.json();
-  // Process successful response
-} catch (error) {
-  console.error('Network error:', error);
-  // Handle network failures
-}
+const API_BASE_URL = "http://192.168.1.100:8000";
 ```
 
+## 14.4 Image Upload Field Names
+
+| Module | Upload Field | Extra Field |
+|---|---|---|
+| Disease | `file` | Optional `bag_id` |
+| Type | `file` | None |
+| Growth | `image` | Required `bag_id` |
+
+## 14.5 Current Limitations
+
+- Authentication is not implemented.
+- CORS allows all origins during development.
+- CO₂ is mainly used for display and future extension.
+- The forecast endpoint currently exposes a 60-minute forecast.
+- Production deployment requires stronger security, logging, and monitoring.
+
 ---
 
-## 14. Rate Limiting
+# 📝 15. Changelog
 
-### Current Implementation
-- **Rate Limiting**: Not implemented in development mode
-- **Concurrent Requests**: No limit
+## Version 1.1.0
 
-### Production Recommendations
+- Added `/api/v1/environment/solution-recommendation`
+- Added `/api/v1/environment/forecast-60m`
+- Updated disease prediction response with `severity` and `treatment`
+- Added disease `bag_id` support
+- Added `/api/v1/disease/history/{bag_id}`
+- Updated growth endpoint to `/api/v1/growth/predict-growth-stage`
+- Added `/api/v1/growth/history/{bag_id}`
+- Removed pest API documentation from project scope
+- Updated upload field names for image-based endpoints
 
-**Per-User Limits** (with authentication):
-- Reading inserts: 60 per minute
-- Status checks: 120 per minute
-- Image uploads: 10 per minute
-- History queries: 30 per minute
+---
 
-**Per-IP Limits** (without authentication):
-- All endpoints: 100 requests per minute
-- Image uploads: 5 per minute
+# 📞 16. Support
 
-**Implementation Suggestion**:
-```python
-from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
+For technical testing, use:
 
-limiter = Limiter(key_func=get_remote_address)
-
-@app.post("/api/v1/environment/readings")
-@limiter.limit("60/minute")
-async def create_reading(request: Request, ...):
-    # Endpoint logic
-    pass
+```text
+http://127.0.0.1:8000/docs
 ```
 
----
-
-## 15. Database Schema Reference
-
-### Tables Created on Startup
-
-**environment_readings**
-- Primary key: `id` (auto-increment)
-- Indexes: `sampled_at`, `node_id`
-- Stores: all sensor measurements
-
-**environment_profile**
-- Single row with `id=1`
-- Stores: current mushroom_type and stage
-- Updated: via PUT /profile
-
-**environment_alert_state**
-- Primary key: `param` (temperature, humidity)
-- Stores: alert counters, state, messages
-- Reset: when profile changes
-
-**mushroom_stages**
-- Reference data: spawn_run, fruiting
-- Read-only after seed
-
-**mushroom_optimal_ranges**
-- Composite key: mushroom_type + stage
-- Stores: temp/humidity/CO₂ ranges
-- Seeded: on startup with known varieties
-
----
-
-## 16. Timezone Handling
-
-All date-based operations use **Asia/Colombo** timezone:
-
-**Affected Endpoints**:
-- `GET /history?range=date&date=YYYY-MM-DD`
-- `GET /available-dates`
-- `GET /recommendation?source=date&date=YYYY-MM-DD`
-
-**Behavior**:
-- Date boundaries align to midnight Asia/Colombo time
-- UTC timestamps are converted for date grouping
-- Returned timestamps remain in UTC
-
-**Example**:
-```
-Request: /history?range=date&date=2026-01-10
-
-Converts to:
-- Start: 2026-01-10 00:00:00 Asia/Colombo → 2026-01-09 18:30:00 UTC
-- End:   2026-01-11 00:00:00 Asia/Colombo → 2026-01-10 18:30:00 UTC
-
-Returns: All readings in this UTC range, bucketed hourly
-```
-
----
-
-## 17. Changelog
-
-### Version 1.0.0 (2026-01-10)
-- ✅ Initial API release
-- ✅ Environment module fully integrated
-- ✅ Disease detection integrated (Keras)
-- ✅ Type classification integrated (TFLite)
-- ✅ Pests and growth placeholder endpoints
-- ✅ PostgreSQL backend with connection pooling
-- ✅ Consecutive-reading alert logic
-- ✅ Asia/Colombo timezone support
-- ✅ Interactive Swagger documentation
-
----
-
-## 18. Support & Contact
-
-For technical questions or bug reports:
-- Check Swagger UI: `/docs`
-- Review this specification
-- Contact research team (see README.md)
-
-**API Maintainer**: IT22353566 - Nipuna Sachintha
-
----
-
-**Document Version**: 1.0.0  
-**Last Updated**: January 10, 2026  
-**API Version**: v1
+**Project ID:** 25-26J-211  
