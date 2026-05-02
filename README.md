@@ -1,512 +1,435 @@
 [![API Docs](https://img.shields.io/badge/API-Documentation-blue?style=for-the-badge)](docs/api_spec.md)
+[![Research Website](https://img.shields.io/badge/Research-Website-green?style=for-the-badge)](https://SachinthaX.github.io/mushroom-research-website/)
+[![Status](https://img.shields.io/badge/Status-Active%20Development-orange?style=for-the-badge)]()
 
 # Smart Mushroom Cultivation Analytics Framework
 
-A comprehensive IoT-enabled decision-support system for mushroom cultivation that combines real-time environmental monitoring, AI-powered disease detection, and intelligent variety recommendations to help small and medium-scale farmers optimize yields and reduce losses.
+A comprehensive smart agriculture decision-support system for mushroom cultivation.  
+This project combines **environmental monitoring**, **machine learning forecasting**, **mushroom type and growth-stage prediction**, **disease detection**, **treatment recommendation**, and **severity monitoring** to help mushroom farmers make faster and more accurate cultivation decisions.
 
 ![Project Banner](./assets/banner.jpeg)
 
 <p align="center">
-  <b>Environmental Monitoring</b> • <b>AI Disease Detection</b> • <b>Growth Prediction</b>
+  <b>Environmental Monitoring</b> • <b>Forecasting</b> • <b>Growth Prediction</b> • <b>Disease Detection</b> • <b>Treatment Recommendation</b>
 </p>
-
-<p align="center">
-  A comprehensive IoT-enabled decision-support system for mushroom cultivation...
-</p>
-
-## 🍄 Overview
-
-Mushroom cultivation is highly sensitive to environmental conditions—particularly temperature and relative humidity. Manual monitoring often misses critical deviations that can lead to contamination or reduced yields. This system provides an intelligent, automated solution with real-time alerts, trend analysis, and AI-powered insights.
-
-### What This System Offers
-
-**Environmental Intelligence**
-- Real-time monitoring of temperature, humidity, and CO₂ levels
-- Smart alerts with consecutive-reading logic to prevent false alarms
-- Historical trend analysis with customizable time ranges
-- Sensor health monitoring and offline detection
-
-**AI-Powered Analysis**
-- Disease detection from mushroom images (healthy, black mold, green mold)
-- Mushroom variety classification via image recognition
-- Intelligent variety recommendations based on current conditions
-- Explainable scoring system for decision transparency
-
-**Optimized Cultivation**
-- Pre-loaded optimal ranges for multiple mushroom varieties
-- Stage-specific monitoring (spawn run vs. fruiting phase)
-- Visual trend graphs aligned to local timezone (Asia/Colombo)
-- Mobile-first interface for on-the-go management
 
 ---
 
-## 🏗️ Architecture
+## Overview
+
+Mushroom cultivation is highly sensitive to environmental conditions such as temperature, humidity, CO₂ level, ventilation, hygiene, and growth-stage timing. Manual monitoring can be time-consuming, inconsistent, and difficult when farmers manage many cultivation bags.
+
+This project provides an integrated system that supports mushroom farmers by converting sensor readings and image inputs into practical decision-support outputs such as alerts, forecasts, predictions, recommendations, and history-based trends.
+
+---
+
+## Main Components
+
+### 1. Environmental Intelligence Module
+
+This module monitors the mushroom growing environment and provides decision support based on sensor data.
+
+**Main features:**
+
+- Real-time temperature, humidity, and estimated CO₂ monitoring
+- Environmental alert generation
+- Historical trend analysis
+- 1-hour, 6-hour, and 24-hour temperature/humidity forecasting
+- Corrective solution recommendation
+- Mushroom variety recommendation based on environmental suitability
+
+### 2. Visual Growth Intelligence Module
+
+This module analyzes mushroom images to support type identification and growth-stage monitoring.
+
+**Main features:**
+
+- Mushroom type classification
+- Growth-stage prediction
+- Bag-level growth history
+- Next-stage estimation
+- Mobile image capture and upload support
+- Confidence score output
+
+### 3. Disease Intelligence Module
+
+This module detects disease conditions from mushroom bag images and provides practical disease management support.
+
+**Main features:**
+
+- Disease detection from uploaded images
+- Healthy, black mold, green mold, and invalid/other image handling
+- Confidence score output
+- Treatment recommendation
+- Severity estimation
+- Bag-level disease history
+- Severity trend monitoring
+
+---
+
+## System Architecture
 
 ```mermaid
 flowchart TB
-    subgraph IoT["IoT Layer (Optional)"]
-        ESP[ESP32 + DHT22 + MQ-135]
+    subgraph Input["Data Sources"]
+        IoT[IoT Sensor Node]
+        Weather[Outdoor Weather API]
+        Image[Mobile Image Capture]
+        User[Farmer Input]
     end
-    
-    subgraph Mobile["Mobile Application"]
-        UI1[Environmental Dashboard]
-        UI2[Disease Detection]
-        UI3[Type Classification]
-        UI4[Recommendations]
-    end
-    
+
     subgraph Backend["FastAPI Backend"]
         API[REST API Layer]
-        ENV[Environment Service]
-        DIS[Disease AI Service]
-        TYP[Type AI Service]
-        REC[Recommendation Engine]
+        Env[Environmental Service]
+        Forecast[Forecasting Service]
+        Growth[Growth Prediction Service]
+        Disease[Disease Detection Service]
+        Rec[Recommendation Service]
+        History[History Service]
     end
-    
-    subgraph Storage["Data Layer"]
-        DB[(PostgreSQL)]
-        ML1[Keras Disease Model]
-        ML2[TFLite Type Model]
+
+    subgraph Models["AI / ML Models"]
+        RF[Random Forest Forecast Models]
+        TypeModel[Mushroom Type Model]
+        StageModel[Growth Stage Model]
+        DiseaseModel[Disease Detection Model]
     end
-    
-    IoT -->|HTTP POST| API
-    Mobile -->|REST API| API
-    API --> ENV
-    API --> DIS
-    API --> TYP
-    API --> REC
-    ENV <--> DB
-    DIS --> ML1
-    TYP --> ML2
+
+    subgraph Storage["Database / Storage"]
+        DB[(Database)]
+        Records[History Records]
+    end
+
+    subgraph Mobile["Mobile Application"]
+        Dashboard[Environmental Dashboard]
+        Graphs[Trend Graphs]
+        Predictions[Predictions]
+        Recommendations[Recommendations]
+        HistoryUI[History Views]
+    end
+
+    IoT --> API
+    Weather --> API
+    Image --> API
+    User --> Mobile
+
+    Mobile --> API
+    API --> Env
+    API --> Forecast
+    API --> Growth
+    API --> Disease
+    API --> Rec
+    API --> History
+
+    Forecast --> RF
+    Growth --> TypeModel
+    Growth --> StageModel
+    Disease --> DiseaseModel
+
+    Env <--> DB
+    History <--> Records
+    API --> Mobile
 ```
 
 ---
 
-## 🚀 Key Features
+## Key Features
 
-### 1. Real-Time Environmental Monitoring
-- **Multi-sensor support**: Temperature (°C), Humidity (%RH), CO₂ (ppm estimated)
-- **Live status dashboard**: Current readings with optimal range comparison
-- **Sensor health tracking**: Online/offline status with last-seen timestamps
-- **Node identification**: Support for multiple sensor nodes
-
-### 2. Intelligent Alert System
-Reduces false alarms using a consecutive-reading algorithm:
-- **Alert activation**: 10 consecutive out-of-range readings required
-- **Alert deactivation**: 5 consecutive in-range readings required
-- **Persistent state**: Alert counters and messages stored in database
-- **Parameter-specific**: Independent alerts for temperature and humidity
-
-### 3. Historical Trend Analysis
-Fixed-bucket time series data for consistent visualization:
-- **Last 1 Hour**: 12 data points (5-minute intervals)
-- **Last 24 Hours**: 24 data points (hourly intervals)
-- **Specific Date**: 24 hourly points aligned to Asia/Colombo timezone
-- **Suggested axis ranges**: Temperature (0–45°C), Humidity (0–100%), CO₂ (0–5000 ppm)
-
-### 4. Variety Recommendation Engine
-- **Intelligent matching**: Ranks mushroom varieties by environmental fit
-- **Explainable scoring**: Distance-based penalties from optimal ranges
-- **Multiple data sources**: Current reading, hourly average, daily average, or specific date
-- **Stage-aware**: Considers spawn run vs. fruiting phase requirements
-
-### 5. AI Disease Detection
-- **Keras-based model**: Pre-trained on mushroom disease images
-- **Three classifications**: Healthy, Black Mold, Green Mold
-- **Confidence thresholding**: Returns "invalid_image" for low-confidence predictions
-- **Mobile integration**: Direct camera/gallery upload from app
-
-### 6. AI Type Classification
-- **TFLite model**: Lightweight MobileNetV2-based classifier
-- **Five varieties**: Abalone, Button, Milky, Oyster, Paddy Straw mushrooms
-- **Quality checks**: Rejects unclear or non-mushroom images
-- **Top-K predictions**: Returns confidence scores for multiple varieties
+- Real-time environmental dashboard
+- Temperature, humidity, and CO₂ monitoring
+- Forecasting for 1-hour, 6-hour, and 24-hour horizons
+- Smart alert generation
+- Environmental solution recommendation
+- Mushroom variety recommendation
+- Mushroom type classification
+- Growth-stage prediction
+- Disease detection
+- Treatment recommendation
+- Disease severity scoring
+- Bag-level history tracking
+- Farmer-friendly mobile interface
 
 ---
 
-## 🛠️ Technology Stack
+## Technology Stack
 
 ### Backend
-| Component | Technology | Purpose |
-|-----------|------------|---------|
-| **Framework** | FastAPI | High-performance async REST API |
-| **Database** | PostgreSQL 13+ | Relational data storage with JSON support |
-| **DB Driver** | psycopg[binary] + psycopg_pool | Connection pooling and async support |
-| **ML Framework** | TensorFlow/Keras | Disease model inference |
-| **Lite Inference** | TFLite Interpreter | Efficient mobile-optimized classification |
-| **Image Processing** | Pillow, NumPy | Image preprocessing and manipulation |
-| **Timezone** | tzdata | Asia/Colombo timezone support |
-| **File Upload** | python-multipart | Multipart form data handling |
-| **Environment** | python-dotenv | Configuration management |
-| **Server** | Uvicorn | ASGI server with hot reload |
+
+| Technology | Purpose |
+|---|---|
+| FastAPI | Backend REST API |
+| Python | Backend and machine learning logic |
+| TensorFlow / Keras | Deep learning model inference |
+| Scikit-learn | Forecasting and ML evaluation |
+| Random Forest | Temperature and humidity forecasting |
+| Pillow / NumPy | Image preprocessing |
+| PostgreSQL / Supabase | Data storage |
+| Uvicorn | Backend server |
+| Swagger / ReDoc | API documentation |
 
 ### Mobile Application
-| Component | Technology | Purpose |
-|-----------|------------|---------|
-| **Framework** | Expo + React Native | Cross-platform mobile development |
-| **Navigation** | React Navigation | Bottom tab navigation |
-| **Image Capture** | expo-image-picker | Camera and gallery access |
-| **Charts** | react-native-svg | Vector-based trend visualization |
-| **Icons** | @expo/vector-icons | UI iconography |
-| **HTTP Client** | Fetch API | Backend communication |
 
-### Hardware (Optional IoT Integration)
-- **Microcontroller**: ESP32 DevKit (WiFi enabled)
-- **Temperature/Humidity**: DHT22 digital sensor
-- **CO₂ Estimation**: MQ-135 analog gas sensor
-- **Communication**: HTTP REST API over WiFi
+| Technology | Purpose |
+|---|---|
+| React Native | Mobile application development |
+| Expo | Mobile testing and development |
+| Expo Image Picker | Camera and gallery image selection |
+| Fetch API | Backend communication |
+| React Native SVG | Graph and chart rendering |
+| Vector Icons | UI icons |
+
+### Hardware / IoT
+
+| Component | Purpose |
+|---|---|
+| ESP32 | Sensor node controller |
+| DHT22 | Temperature and humidity sensing |
+| MQ-135 | Air quality / CO₂-related sensing |
+| Wi-Fi | Data transmission |
 
 ---
 
-## 📁 Repository Structure
+## Repository Structure
 
-```
+```text
 Research-Project-Of-Mushroom/
+│
 ├── backend/
-│   ├── main.py                          # FastAPI application entry point
-│   ├── requirements.txt                 # Python dependencies
-│   ├── .env.example                     # Environment variable template
-│   ├── models/                          # AI model files
-│   │   ├── mushroom_disease_model.h5    # Keras disease detection model
-│   │   ├── mushroom_type.tflite         # TFLite type classification model
-│   │   └── class_names.json             # Type model class labels
+│   ├── main.py
+│   ├── requirements.txt
+│   ├── .env.example
+│   ├── models/
+│   │   ├── mushroom_disease_model.h5
+│   │   ├── mushroom_type.tflite
+│   │   └── class_names.json
 │   └── app/
-│       ├── api/v1/                      # API route handlers
-│       │   ├── environment.py           # Environmental endpoints
-│       │   ├── disease.py               # Disease prediction endpoints
-│       │   ├── type.py                  # Type classification endpoints
-│       │   ├── pests.py                 # Pest detection (placeholder)
-│       │   └── growth.py                # Growth prediction (placeholder)
-│       ├── db/                          # Database layer
-│       │   ├── connection.py            # PostgreSQL connection pool
-│       │   └── seed.py                  # Database initialization and seeding
-│       ├── schemas/                     # Pydantic models
-│       │   ├── environment.py           # Environment data schemas
-│       │   ├── disease.py               # Disease prediction schemas
-│       │   └── type.py                  # Type prediction schemas
-│       └── services/                    # Business logic
-│           ├── environment_service.py   # Environmental monitoring logic
-│           ├── disease_service.py       # Disease detection inference
-│           └── type_service.py          # Type classification inference
+│       ├── api/v1/
+│       ├── db/
+│       ├── schemas/
+│       └── services/
 │
 ├── MobileAppExpo/
-│   ├── App.js                           # Application entry point
-│   ├── package.json                     # Node dependencies
-│   ├── app.json                         # Expo configuration
+│   ├── App.js
+│   ├── package.json
+│   ├── app.json
 │   └── src/
-│       ├── screens/                     # UI screens
-│       │   ├── EnvironmentScreen.js     # Main dashboard
-│       │   ├── DiseaseScreen.js         # Disease detection
-│       │   ├── TypeScreen.js            # Type classification
-│       │   └── RecommendationScreen.js  # Variety recommendations
+│       ├── screens/
 │       └── services/
-│           └── api.js                   # Backend API client
 │
-└── docs/
-    ├── README.md                        # This file
-    └── api_spec.md                      # Detailed API documentation
+├── docs/
+│   └── api_spec.md
+│
+├── assets/
+│   └── banner.jpeg
+│
+└── README.md
 ```
 
 ---
 
-## 🚦 Quick Start Guide
+## Getting Started
 
 ### Prerequisites
-- **Python**: 3.10 or higher (3.11 recommended)
-- **PostgreSQL**: 13 or higher
-- **Node.js**: 16 or higher
-- **npm**: 8 or higher
-- **Expo Go**: Mobile app (for testing)
 
-### Backend Setup
+Install the following before running the project:
 
-1. **Navigate to backend directory**
+- Python 3.10 or higher
+- Node.js 16 or higher
+- npm
+- PostgreSQL or Supabase database
+- Expo Go mobile app
+- Git
+
+---
+
+## Backend Setup
+
+Go to the backend folder:
+
 ```bash
 cd backend
 ```
 
-2. **Create virtual environment**
+Create and activate a virtual environment:
+
 ```bash
-# Windows (PowerShell)
 python -m venv venv
 .\venv\Scripts\activate
-
-# macOS/Linux
-python3 -m venv venv
-source venv/bin/activate
 ```
 
-3. **Install dependencies**
+Install dependencies:
+
 ```bash
 pip install -r requirements.txt
-pip install python-dotenv
 ```
 
-4. **Configure database**
+Create a `.env` file inside the `backend/` folder:
 
-Create a `.env` file in the `backend/` directory:
 ```env
 DATABASE_URL=postgresql://username:password@localhost:5432/mushroom_db
 ```
 
-Replace `username`, `password`, and `mushroom_db` with your PostgreSQL credentials.
+Start the backend server:
 
-5. **Initialize database**
-
-The backend automatically creates and seeds tables on first run. Ensure PostgreSQL is running and the database exists:
-```sql
-CREATE DATABASE mushroom_db;
-```
-
-6. **Start the backend server**
 ```bash
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-7. **Verify installation**
-- Swagger UI: http://127.0.0.1:8000/docs
-- Health check: http://127.0.0.1:8000/ping
-- API status: http://127.0.0.1:8000/api/v1/environment/health
+Backend API documentation:
 
-### Mobile App Setup
+```text
+http://127.0.0.1:8000/docs
+```
 
-1. **Navigate to mobile directory**
+Health check:
+
+```text
+http://127.0.0.1:8000/ping
+```
+
+---
+
+## Mobile App Setup
+
+Go to the mobile app folder:
+
 ```bash
 cd MobileAppExpo
 ```
 
-2. **Install dependencies**
+Install dependencies:
+
 ```bash
 npm install
 ```
 
-3. **Configure backend URL**
+Update the backend URL in the API service file.
 
-Edit `MobileAppExpo/src/services/api.js`:
+Example:
+
 ```javascript
-// For development, use your computer's local IP address
-// Find it with: ipconfig (Windows) or ifconfig (macOS/Linux)
-export const BACKEND_URL = "http://192.168.1.100:8000";
+export const BACKEND_URL = "http://YOUR_PC_IP_ADDRESS:8000";
 ```
 
-**Important**: Both your development machine and mobile device must be on the same WiFi network.
+Start Expo:
 
-4. **Start Expo development server**
 ```bash
 npx expo start
 ```
 
-5. **Launch on device**
-- Install **Expo Go** from your device's app store
-- Scan the QR code displayed in your terminal
-- The app will build and launch automatically
+Open the app using **Expo Go** on your mobile device.
+
+Make sure the mobile phone and backend computer are connected to the same Wi-Fi network.
 
 ---
 
-## 🧪 Testing the System
+## API Documentation
 
-### Backend API Tests
+The backend provides Swagger API documentation when the server is running:
 
-**Health Check**
+```text
+http://127.0.0.1:8000/docs
+```
+
+Detailed API specification:
+
+```text
+docs/api_spec.md
+```
+
+---
+
+## Research Website
+
+The project research website is available here:
+
+```text
+https://SachinthaX.github.io/mushroom-research-website/
+```
+
+The website includes:
+
+- Home
+- Domain
+- Milestones
+- Documents
+- Presentations
+- About Us
+- Contact Us
+
+---
+
+## Research Team
+
+| Student ID | Name | Contribution |
+|---|---|---|
+| IT22889188 | S.M.A. Dhananjaya | Disease detection, treatment recommendation, severity monitoring |
+| IT22353566 | Sachintha H N | Environmental monitoring, forecasting, solution recommendation, variety recommendation |
+| IT22911162 | Yukthila Y.C | Mushroom type classification, growth-stage prediction, bag-level history |
+
+---
+
+## Future Improvements
+
+- Add more mushroom varieties
+- Add more disease categories
+- Improve humidity forecasting accuracy
+- Add stronger image quality validation
+- Add push notifications for alerts
+- Add cloud deployment support
+- Add user authentication
+- Add admin dashboard
+- Add yield prediction
+- Improve farm-level analytics
+
+---
+
+## Troubleshooting
+
+### Backend does not start
+
+Check:
+
 ```bash
-curl http://127.0.0.1:8000/ping
+python --version
+pip install -r requirements.txt
 ```
 
-**Get Current Status**
-```bash
-curl http://127.0.0.1:8000/api/v1/environment/status
-```
+Make sure the `.env` file contains the correct database URL.
 
-**Insert Test Reading**
-```bash
-curl -X POST http://127.0.0.1:8000/api/v1/environment/readings \
-  -H "Content-Type: application/json" \
-  -d '{
-    "temperature": 25.0,
-    "humidity": 90.0,
-    "co2": 800.0,
-    "node_id": "test-node"
-  }'
-```
+### Mobile app cannot connect to backend
 
-**Get Historical Data**
-```bash
-# Last hour
-curl http://127.0.0.1:8000/api/v1/environment/history?range=last_1h
+Check:
 
-# Last 24 hours
-curl http://127.0.0.1:8000/api/v1/environment/history?range=last_day
+- Backend is running
+- Mobile and computer are on the same Wi-Fi
+- API URL uses the computer IP address, not `localhost`
+- Firewall is not blocking port `8000`
 
-# Specific date
-curl http://127.0.0.1:8000/api/v1/environment/history?range=date&date=2026-01-10
-```
+### Images are not uploading
 
-**Get Variety Recommendations**
-```bash
-# Based on current reading
-curl http://127.0.0.1:8000/api/v1/environment/recommendation?source=current
+Check:
 
-# Based on last day average
-curl http://127.0.0.1:8000/api/v1/environment/recommendation?source=last_day
-```
+- Camera/gallery permission is enabled
+- Backend upload endpoint is running
+- Image file format is supported
 
-**Update Cultivation Profile**
-```bash
-curl -X PUT http://127.0.0.1:8000/api/v1/environment/profile \
-  -H "Content-Type: application/json" \
-  -d '{
-    "mushroom_type": "Oyster Mushroom",
-    "stage": "fruiting"
-  }'
-```
+### AI model is not loading
 
-**Disease Detection**
-```bash
-curl -X POST http://127.0.0.1:8000/api/v1/disease/predict \
-  -F "file=@path/to/mushroom_image.jpg"
-```
+Check:
 
-**Type Classification**
-```bash
-curl -X POST http://127.0.0.1:8000/api/v1/type/predict \
-  -F "file=@path/to/mushroom_image.jpg"
-```
+- Model files exist in `backend/models/`
+- TensorFlow is installed correctly
+- Model file names match the backend code
 
 ---
 
-## 🔧 Configuration
+## License
 
-### Backend Environment Variables
-
-Create `backend/.env`:
-```env
-# Database Configuration
-DATABASE_URL=postgresql://user:password@host:port/database
-
-# Optional: Server Configuration
-HOST=0.0.0.0
-PORT=8000
-DEBUG=True
-
-# Optional: Alert Configuration
-ALERT_BAD_COUNT_THRESHOLD=6
-ALERT_GOOD_COUNT_THRESHOLD=2
-
-# Optional: Model Paths (if different from defaults)
-DISEASE_MODEL_PATH=models/mushroom_disease_model.h5
-TYPE_MODEL_PATH=models/mushroom_type.tflite
-CLASS_NAMES_PATH=models/class_names.json
-```
-
-### Mobile App Configuration
-
-Edit `MobileAppExpo/src/services/api.js`:
-```javascript
-// Development (same WiFi network)
-export const BACKEND_URL = "http://YOUR_PC_IP:8000";
-
-// Production (deployed backend)
-export const BACKEND_URL = "https://your-domain.com";
-```
+This project was developed for academic research purposes at the Sri Lanka Institute of Information Technology.
 
 ---
 
-## 📊 Database Schema
+## Status
 
-The system automatically creates and seeds the following tables:
-
-**environment_readings**
-- Stores all sensor measurements with timestamps
-- Includes temperature, humidity, CO₂, node_id, and optional notes
-
-**environment_profile**
-- Single-row table storing current mushroom type and cultivation stage
-- Updated via PUT /api/v1/environment/profile
-
-**environment_alert_state**
-- Tracks alert state for temperature and humidity
-- Maintains consecutive reading counters and last alert messages
-
-**mushroom_stages**
-- Reference table for cultivation stages (spawn_run, fruiting)
-
-**mushroom_optimal_ranges**
-- Pre-seeded optimal environmental ranges
-- Organized by mushroom type and cultivation stage
-
----
-
-## 👥 Research Team
-
-This project is developed as part of academic research at SLIIT.
-
-| Student ID | Name | Research Focus |
-|------------|------|----------------|
-| IT22889188 | Dhananjaya S.M.A | Visual mushroom Disease detection and treatment reccomendation system |
-| IT22353566 | Sachintha H.N    | Environmental monitoring, alerts, recommendation engine |
-| IT22911162 | Yukthila Y.C     | Mushroom type detection and Growth prediction |
-
----
-
-## 📚 Documentation
-
-- **API Specification**: See [docs/api_spec.md](docs/api_spec.md) for complete endpoint documentation
-- **Swagger UI**: Available at http://127.0.0.1:8000/docs when backend is running
-- **ReDoc**: Available at http://127.0.0.1:8000/redoc for alternative API documentation
-
----
-
-## 🔮 Future Enhancements
-
-- **Treatment Recommendation**: Knowledge-based guidance that suggests practical control steps based on the predicted disease and severity
-- **Pest Detection**: AI model integration for pest identification (endpoint ready)
-- **Growth Prediction**: ML-based yield forecasting (endpoint ready)
-- **Multi-user Support**: Authentication and user-specific profiles
-- **Cloud Deployment**: Production-ready deployment guides
-- **WebSocket Support**: Real-time data streaming for live dashboards
-- **Notification System**: Push notifications for critical alerts
-- **Data Export**: CSV/Excel export for historical data analysis
-- **Advanced Analytics**: Correlation analysis between environmental factors and yields
-
----
-
-## 📄 License
-
-This project is developed for academic research purposes at SLIIT (Sri Lanka Institute of Information Technology).
-
----
-
-## 🤝 Contributing
-
-This is a research project. For questions or collaboration inquiries, please contact the research team members listed above.
-
----
-
-## 🐛 Troubleshooting
-
-**Backend won't start**
-- Verify PostgreSQL is running: `pg_isready`
-- Check DATABASE_URL format in .env file
-- Ensure Python version is 3.10+
-
-**Mobile app can't connect**
-- Confirm both devices are on same WiFi network
-- Check firewall isn't blocking port 8000
-- Verify backend URL uses local IP, not localhost
-- Test backend accessibility: `curl http://YOUR_IP:8000/ping` from another device
-
-**Database connection errors**
-- Verify database exists: `psql -l`
-- Check user permissions
-- Ensure password doesn't contain special characters that need escaping in URL
-
-**AI models not loading**
-- Verify model files exist in `backend/models/` directory
-- Check file permissions are readable
-- Confirm TensorFlow installation: `pip show tensorflow`
-
----
-
-**Last Updated**: January 10, 2026  
-**Version**: 1.0.0  
-**Status**: Active Development
+**Project ID:** 25-26J-211
