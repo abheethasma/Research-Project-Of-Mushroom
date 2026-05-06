@@ -18,9 +18,9 @@ ALLOWED_CONTENT_TYPES = {"image/jpeg", "image/png", "image/jpg", "image/webp"}
 
 # ---- Tunable thresholds ----
 # Suggestion: start with these, then adjust after testing
-CONFIDENCE_THRESHOLD = 0.90   # if top-1 confidence below -> unknown
-MARGIN_THRESHOLD = 0.20       # if top-1 - top-2 below -> unknown
-ENTROPY_THRESHOLD = 0.90      # high uncertainty -> unknown (for 3 classes max entropy ~1.0986)
+CONFIDENCE_THRESHOLD = 0.75   # if top-1 confidence below -> unknown
+MARGIN_THRESHOLD = 0.10       # if top-1 - top-2 below -> unknown
+ENTROPY_THRESHOLD = 1.05      # high uncertainty -> unknown (for 3 classes max entropy ~1.0986)
 
 TOP_K = 3
 IMG_SIZE = (224, 224)
@@ -78,15 +78,16 @@ def _read_image(file_bytes: bytes) -> Image.Image:
 
 def _preprocess(img: Image.Image) -> np.ndarray:
     """
-    MobileNetV2 preprocessing:
-    - resize 224x224
-    - float32
-    - scale to [-1, 1]  => (x / 127.5) - 1
-    Output shape: (1, 224, 224, 3)
+    Preprocessing for TFLite model exported from Keras model that already contains
+    MobileNetV2 preprocess_input layer.
+
+    Therefore backend should only:
+    - resize to 224x224
+    - convert to float32
+    - keep pixel values in 0..255
     """
     img = img.resize(IMG_SIZE)
-    arr = np.asarray(img).astype(np.float32)  # 0..255
-    arr = (arr / 127.5) - 1.0                 # -1..1
+    arr = np.asarray(img).astype(np.float32)  # keep 0..255
     arr = np.expand_dims(arr, axis=0)
     return arr
 
@@ -99,7 +100,7 @@ def _image_quality_flags(input_tensor: np.ndarray) -> Tuple[bool, Optional[str]]
     - Too low contrast (often unclear)
     input_tensor expected in [-1, 1]; convert to [0, 1] for checks.
     """
-    x = (input_tensor[0] + 1.0) / 2.0  # [0,1]
+    x = input_tensor[0] / 255.0 # [0,1]
     gray = np.mean(x, axis=2)
 
     mean_val = float(np.mean(gray))

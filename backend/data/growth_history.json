@@ -16,5 +16,77 @@
     "estimated_days_to_next_stage": "0 days",
     "warning": "Low confidence. Please upload a clearer image.",
     "timestamp": "2026-03-08T15:34:49.516680"
+  },
+  {
+    "bag_id": "bag-23",
+    "growth_stage": "Fruitbody Development",
+    "confidence": 0.6406,
+    "next_stage": "Harvest Readiness",
+    "estimated_days_to_next_stage": "1-3 days",
+    "warning": "Low confidence. Please upload a clearer image.",
+    "timestamp": "2026-05-03T23:09:53.537543"
+  },
+  {
+    "bag_id": "bag-23",
+    "growth_stage": "Harvest Readiness",
+    "confidence": 0.8541,
+    "next_stage": "Completed",
+    "estimated_days_to_next_stage": "0 days",
+    "warning": null,
+    "timestamp": "2026-05-03T23:10:34.754876"
+  },
+  {
+    "bag_id": "ddjdj",
+    "growth_stage": "Primordia Formation",
+    "confidence": 0.9066,
+    "next_stage": "Fruitbody Development",
+    "estimated_days_to_next_stage": "2-4 days",
+    "warning": null,
+    "timestamp": "2026-05-03T23:11:50.311134"
+  },
+  {
+    "bag_id": "ddjdj",
+    "growth_stage": "Primordia Formation",
+    "confidence": 0.4801,
+    "next_stage": "Fruitbody Development",
+    "estimated_days_to_next_stage": "2-4 days",
+    "warning": "Low confidence. Please upload a clearer image.",
+    "timestamp": "2026-05-03T23:12:42.837428"
+  },
+  {
+    "bag_id": "ddjdj",
+    "growth_stage": "Harvest Readiness",
+    "confidence": 0.5226,
+    "next_stage": "Completed",
+    "estimated_days_to_next_stage": "0 days",
+    "warning": "Low confidence. Please upload a clearer image.",
+    "timestamp": "2026-05-03T23:13:30.493239"
+  },
+  {
+    "bag_id": "ddjdj",
+    "growth_stage": "Primordia Formation",
+    "confidence": 0.9066,
+    "next_stage": "Fruitbody Development",
+    "estimated_days_to_next_stage": "2-4 days",
+    "warning": null,
+    "timestamp": "2026-05-03T23:13:54.302461"
+  },
+  {
+    "bag_id": "ddjdj",
+    "growth_stage": "Harvest Readiness",
+    "confidence": 0.9774,
+    "next_stage": "Completed",
+    "estimated_days_to_next_stage": "0 days",
+    "warning": null,
+    "timestamp": "2026-05-03T23:14:22.975770"
+  },
+  {
+    "bag_id": "ddjdjfjdjdjd-28382",
+    "growth_stage": "Harvest Readiness",
+    "confidence": 0.5864,
+    "next_stage": "Completed",
+    "estimated_days_to_next_stage": "0 days",
+    "warning": "Low confidence. Please upload a clearer image.",
+    "timestamp": "2026-05-03T23:14:54.480053"
   }
 ]
