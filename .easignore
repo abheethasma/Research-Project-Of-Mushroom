@@ -1,0 +1,56 @@
+# Do not upload Git history
+.git
+.git/**
+
+# Do not upload backend to mobile APK build
+backend
+backend/**
+
+# Do not upload generated ZIP files
+*.zip
+*.rar
+*.7z
+*.tar
+*.gz
+
+# Do not upload local inspection folders
+eas-inspect
+eas-inspect/**
+MobileAppExpo/eas-inspect
+MobileAppExpo/eas-inspect/**
+
+# Do not upload mobile dependencies; EAS installs them
+MobileAppExpo/node_modules
+MobileAppExpo/node_modules/**
+
+# Expo/cache folders
+MobileAppExpo/.expo
+MobileAppExpo/.expo/**
+MobileAppExpo/.vscode
+MobileAppExpo/.vscode/**
+
+# Build outputs
+MobileAppExpo/dist
+MobileAppExpo/dist/**
+MobileAppExpo/build
+MobileAppExpo/build/**
+MobileAppExpo/web-build
+MobileAppExpo/web-build/**
+MobileAppExpo/coverage
+MobileAppExpo/coverage/**
+
+# Android/iOS generated build folders
+MobileAppExpo/android/.gradle
+MobileAppExpo/android/.gradle/**
+MobileAppExpo/android/build
+MobileAppExpo/android/build/**
+MobileAppExpo/android/app/build
+MobileAppExpo/android/app/build/**
+MobileAppExpo/ios/build
+MobileAppExpo/ios/build/**
+
+# Local env files
+.env
+.env.*
+MobileAppExpo/.env
+MobileAppExpo/.env.*
